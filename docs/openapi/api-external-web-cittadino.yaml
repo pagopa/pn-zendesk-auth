@@ -5,7 +5,7 @@ tags:
       Invocazioni per richieste di supporto
 
 paths:
-  "/assistenza":
+  "/new-support-request":
     post:
       summary: nuova richiesta di supporto assistenza
       description: >-

@@ -1,0 +1,17 @@
+# Node.js
+node_modules/
+.nyc_output/
+coverage/
+.scannerwork
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### VS Code ###
+.vscode/
+
+### Lambda ###
+function.zip

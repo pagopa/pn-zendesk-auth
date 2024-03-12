@@ -13,8 +13,8 @@ paths:
       tags:
         - SupportRequest
       operationId: newSupportRequest
-      security:                                      # ONLY EXTERNAL
-        - bearerAuth: [ ]                            # ONLY EXTERNAL
+#      security:                                      # ONLY EXTERNAL
+#        - bearerAuth: [ ]                            # ONLY EXTERNAL
       requestBody:
         content:
           application/json:

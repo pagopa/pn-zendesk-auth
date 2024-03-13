@@ -35,7 +35,7 @@ async function handleEvent(event) {
     // produzione html
     const help_center_url = "https://send.assistenza.pagopa.it/hc/it/requests/new"
     const product_id = "prod-pn-pf"
-    const return_to = help_center_url + urllib.parse.quote("?product=" + product_id)
+    const return_to = help_center_url + "?product=" + product_id
     const action_url = "https://pagopa.zendesk.com/access/jwt"
 
     const formHTML = generateJWTForm(action_url, jwtZendesk, return_to);

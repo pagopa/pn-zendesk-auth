@@ -62,6 +62,7 @@ function generateToken(name, email, taxId, zendeskSecret) {
 }
 
 function generateJWTForm(action_url, jwt_string, return_to) {
+    console.log('action_url: ', action_url);
     const template = `
         <form id="jwtForm" method="POST" action="{{action_url}}">
             <input id="jwtString" type="hidden" name="jwt" value="{{jwt_string}}" />

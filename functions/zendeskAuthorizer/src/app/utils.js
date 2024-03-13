@@ -1,4 +1,7 @@
 const axios = require("axios");
+const jsonwebtoken = require("jsonwebtoken");
+const uuid = require('uuid');
+const Mustache = require('mustache');
 
 async function retryWithDelay(fn, delay, retries) {
     try {
@@ -40,6 +43,47 @@ async function getSecretFromManager(secretName) {
       );
 }
 
+function decodeToken(jwtToken) {
+    console.log("Start decoding token");
+    const decodedToken = jsonwebtoken.decode(jwtToken, { complete: true });
+    return decodedToken;
+}
+
+function generateToken(name, email, taxId, zendeskSecret) {
+    const payload = {
+        iat: Math.floor(new Date().getTime() / 1000),
+        jti: uuid.v4(),
+        name: name,
+        email: email,
+        organization: '_users_hc_send',
+        user_fields: { aux_data:  taxId }
+    };
+    return jsonwebtoken.sign(payload, zendeskSecret)
+}
+
+function generateJWTForm(action_url, jwt_string, return_to) {
+    const template = `
+        <form id="jwtForm" method="POST" action="{{action_url}}">
+            <input id="jwtString" type="hidden" name="jwt" value="{{jwt_string}}" />
+            <input id="returnTo" type="hidden" name="return_to" value="{{return_to}}" />
+        </form>
+        <script>
+            window.onload = () => { document.forms["jwtForm"].submit(); };
+        </script>
+    `;
+
+    const view = {
+        action_url: action_url,
+        jwt_string: jwt_string,
+        return_to: return_to
+    };
+
+    return Mustache.render(template, view);
+}
+
 module.exports = {
-    getSecretFromManager
+    getSecretFromManager,
+    decodeToken,
+    generateToken,
+    generateJWTForm
 }

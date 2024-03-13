@@ -13,10 +13,17 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "mocha": "^9.2.2",
+    "lambda-tester": "^4.0.1",
     "nyc": "^15.1.0",
+    "chai": "^4.3.8",
+    "axios-mock-adapter": "^1.22.0",
     "sonarqube-scanner": "^3.3.0"
   },
   "dependencies": {
-    "axios": "^0.25.0"
+    "axios": "^0.25.0",
+    "jsonwebtoken": "^9.0.0",
+    "uuid": "^8.3.2",
+    "mustache": "^4.2.0"
   }
 }

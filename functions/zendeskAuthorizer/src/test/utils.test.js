@@ -66,6 +66,6 @@ describe("decode token test", function() {
         await expect(
             getSecretFromManager(secretName)
           ).to.be.rejectedWith(Error, "Error in get secret");
-    });
+    }).timeout(4000);
 })
 

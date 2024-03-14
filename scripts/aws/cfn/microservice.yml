@@ -16,7 +16,7 @@ Parameters:
     Type: String
     Description: "The S3 bucket base path where lambda functions are stored"
 
-  ZendeskAuthorizerLambdaName:
+  ZendeskAuthorizationLambdaName:
     Type: String
 
   ZendeskSecretName:
@@ -33,7 +33,7 @@ Resources:
   ZendeskAuthorizationLambda:
     Type: AWS::Lambda::Function
     Properties:
-        FunctionName: !Ref ZendeskAuthorizerLambdaName
+        FunctionName: !Ref ZendeskAuthorizationLambdaName
         Runtime: nodejs18.x
         Handler: "index.handler"
         Code:
@@ -136,7 +136,7 @@ Resources:
       - ZendeskAuthorizationLambda
       - ZendeskAuthorizationRestApi
     Properties:
-      FunctionName: !Ref ZendeskAuthorizerLambdaName
+      FunctionName: !Ref ZendeskAuthorizationLambdaName
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ZendeskAuthorizationRestApi}/*/POST/"
@@ -159,7 +159,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ZendeskAuthorizerLambdaName}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ZendeskAuthorizationLambdaName}/invocations"
         PassthroughBehavior: WHEN_NO_MATCH
         ContentHandling: CONVERT_TO_TEXT
         TimeoutInMillis: 29000

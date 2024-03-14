@@ -15,6 +15,8 @@ paths:
       operationId: newSupportRequest
       security:                                      # ONLY EXTERNAL
         - bearerAuth: [ ]                            # ONLY EXTERNAL
+      x-pagopa-lambda-name: 'pn-zendesk-authorization-lambda'
+      x-pagopa-lambda-account: core
       requestBody:
         content:
           application/json:

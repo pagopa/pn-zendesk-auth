@@ -74,8 +74,9 @@ async function handleEvent(event) {
     }
 
     // generazione jwt zendesk
+    var jwtZendesk;
     try {
-        const jwtZendesk = utils.generateToken(userName, userEmail, userTaxId, zendeskSecret);
+        jwtZendesk = utils.generateToken(userName, userEmail, userTaxId, zendeskSecret);
     } catch(err) {
         return {
             statusCode: 500,

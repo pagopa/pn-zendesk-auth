@@ -30,8 +30,8 @@ async function innerGetSecretFromManager(secretName) {
       );
       return response.data.SecretString;
     } catch (err) {
-      console.error("Error in get secret ", err);
-      throw new Error("Error in get secret");
+      console.error("Unable to get secret ", err);
+      throw new Error("Unable to get secret");
     }
 }
 
@@ -44,7 +44,6 @@ async function getSecretFromManager(secretName) {
 }
 
 function decodeToken(jwtToken) {
-    console.log("Start decoding token");
     const decodedToken = jsonwebtoken.decode(jwtToken, { complete: true });
     return decodedToken;
 }
@@ -58,11 +57,16 @@ function generateToken(name, email, taxId, zendeskSecret) {
         organization: '_users_hc_send',
         user_fields: { aux_data:  taxId }
     };
-    return jsonwebtoken.sign(payload, zendeskSecret)
+    try {
+      return jsonwebtoken.sign(payload, zendeskSecret)
+    } catch(err) {
+        console.error('Unable to generate token:', err);
+        throw new Error("Unable to generate token");
+    }
+    
 }
 
 function generateJWTForm(action_url, jwt_string, return_to) {
-    console.log('action_url: ', action_url);
     const template = `
         <form id="jwtForm" method="POST" action="{{action_url}}">
             <input id="jwtString" type="hidden" name="jwt" value="{{jwt_string}}" />
@@ -78,13 +82,48 @@ function generateJWTForm(action_url, jwt_string, return_to) {
         jwt_string: jwt_string,
         return_to: return_to
     };
+    try {
+      return Mustache.render(template, view);
+    }catch(err) {
+        console.error('Unable to generate JWT form:', err);
+        throw new Error("Unable to generate JWT form");
+    }
+    
+}
 
-    return Mustache.render(template, view);
+async function getUserById(pdvBaseUrl, apiKey, id, fields) {
+    try {
+        const response = await axios.get(`${pdvBaseUrl}/users/${id}`, {
+            headers: {
+                'x-api-key': apiKey
+            },
+            params: {
+                fl: fields.join(',')
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Unable to get user by id:', error);
+        throw new Error("Unable to get user by id");
+    }
+}
+
+function generateProblem(status, message) {
+  return {
+      status: status,
+      errors: [
+          {
+              code: message
+          }
+      ]
+  }
 }
 
 module.exports = {
     getSecretFromManager,
     decodeToken,
     generateToken,
-    generateJWTForm
+    generateJWTForm,
+    getUserById,
+    generateProblem
 }

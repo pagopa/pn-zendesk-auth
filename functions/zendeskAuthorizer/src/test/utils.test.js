@@ -1,4 +1,4 @@
-const { decodeToken, generateToken, generateJWTForm, getSecretFromManager } = require("../app/utils");
+const { decodeToken, generateToken, generateJWTForm, getSecretFromManager, getUserById } = require("../app/utils");
 const chaiAsPromised = require("chai-as-promised");
 const chai = require("chai");
 const axios = require('axios');
@@ -31,14 +31,20 @@ describe("decode token test", function() {
 
     });
 
-    it("should return jwt token", async () => {
+    it("should return jwt token - success", async () => {
         const jwtToken = generateToken("Leonardo Da Vinci", "leonardo.davinci@fakemail.it", "DVNLRD52D15M059P", "fakeSecret")
         console.log("jwtToken: ", jwtToken);
         expect(jwtToken).to.not.be.null;
         expect(jwtToken).to.not.be.undefined;
     });
 
-    it("should return html form", async () => {
+    it("should return jwt token - fail", async () => {
+        expect(() => {
+            generateToken("Leonardo Da Vinci", "leonardo.davinci@fakemail.it", "DVNLRD52D15M059P", null);
+        }).to.throw('Unable to generate token');
+    });
+
+    it("should return html form - success", async () => {
         const action_url = "https://pagopa.zendesk.com/access/jwt"
         const help_center_url = "https://send.assistenza.pagopa.it/hc/it/requests/new"
         const jwt_string = "fakejwtstring"
@@ -65,7 +71,42 @@ describe("decode token test", function() {
         mock.onGet(url).reply(500);
         await expect(
             getSecretFromManager(secretName)
-          ).to.be.rejectedWith(Error, "Error in get secret");
+          ).to.be.rejectedWith(Error, "Unable to get secret");
     }).timeout(4000);
+
+    it("should get user resource by id - success", async () => {
+        let pdvBaseUrl = "https://api.uat.pdv.pagopa.it/user-registry/v1";
+        let apiKey = "fakeApiKey";
+        let userId = "fakeUserId";
+        let fields = ['name', 'familyName', 'fiscalCode'];
+        const userResource = {
+            name: "Leonardo",
+            familyName: "Da Vinci",
+            fiscalCode: "DVNLRD52D15M059P"
+        };
+        let url = pdvBaseUrl + '/users/'  + userId;
+        mock.onGet( url, { params: { fl: 'name,familyName,fiscalCode' }} ).reply(200, userResource, {"Content-Type": "application/json"})
+        const response = await getUserById(pdvBaseUrl, apiKey, userId, fields);
+        console.log("userResource response: ", response);
+        expect(response).to.not.be.null;
+        expect(response).to.not.be.undefined;
+    })
+
+    it("should get user resource by id - fail", async () => {
+        let pdvBaseUrl = "https://api.uat.pdv.pagopa.it/user-registry/v1";
+        let apiKey = "fakeApiKey";
+        let userId = "fakeUserId";
+        let fields = ['name', 'familyName', 'fiscalCode'];
+        const userResource = {
+            name: "Leonardo",
+            familyName: "Da Vinci",
+            fiscalCode: "DVNLRD52D15M059P"
+        };
+        let url = pdvBaseUrl + '/users/'  + userId;
+        mock.onGet( url, { params: { fl: 'name,familyName,fiscalCode' }} ).reply(500);
+        await expect(
+            getUserById(pdvBaseUrl, apiKey, userId, fields)
+          ).to.be.rejectedWith(Error, "Unable to get user by id");
+    });
 })
 

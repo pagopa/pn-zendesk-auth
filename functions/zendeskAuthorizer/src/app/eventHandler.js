@@ -2,10 +2,10 @@ const utils = require("./utils");
 
 async function handleEvent(event) {
     // recupero dei secrets
-    if (process.env.ZENDESK_SECRET_NAME) {
+    if (process.env.ZENDESK_SECRET_ARN) {
         var zendeskSecret;
         try {
-            zendeskSecret = utils.getSecretFromManager(process.env.ZENDESK_SECRET_NAME);
+            zendeskSecret = utils.getSecretFromManager(process.env.ZENDESK_SECRET_ARN);
         } catch(ex) {
             return {
                 statusCode: 500,
@@ -14,10 +14,10 @@ async function handleEvent(event) {
         }
     }
 
-    if (process.env.PDV_SECRET_NAME) {
+    if (process.env.PDV_SECRET_ARN) {
         var pdvSecret;
         try {
-            pdvSecret = utils.getSecretFromManager(process.env.PDV_SECRET_NAME);
+            pdvSecret = utils.getSecretFromManager(process.env.PDV_SECRET_ARN);
         } catch(ex) {
             return {
                 statusCode: 500,
@@ -86,10 +86,11 @@ async function handleEvent(event) {
 
     try{
         // produzione html
-        const help_center_url = "https://send.assistenza.pagopa.it/hc/it/requests/new"
-        const product_id = "prod-pn-pf"
+        const help_center_url = process.env.HELP_CENTER_URL
+        const product_id = process.env.PRODUCT_ID
+        const action_url = process.env.ACTION_URL
+
         const return_to = help_center_url + "?product=" + product_id
-        const action_url = "https://pagopa.zendesk.com/access/jwt"
 
         const formHTML = utils.generateJWTForm(action_url, jwtZendesk, return_to);
         console.log(formHTML);

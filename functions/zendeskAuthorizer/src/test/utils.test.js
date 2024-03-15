@@ -1,7 +1,10 @@
-const { decodeToken, generateToken, generateJWTForm, getSecretFromManager, getUserById } = require("../app/utils");
+const { decodeToken, generateToken, generateJWTForm, getSecretFromManagerLayer, getSecretFromManager, getUserById } = require("../app/utils");
 const chaiAsPromised = require("chai-as-promised");
 const chai = require("chai");
+const { mockClient } = require('aws-sdk-client-mock');
 const axios = require('axios');
+const { GetSecretValueCommand, SecretsManagerClient } = require('@aws-sdk/client-secrets-manager');
+
 
 var MockAdapter = require("axios-mock-adapter");
 chai.use(chaiAsPromised);
@@ -9,17 +12,25 @@ const expect = chai.expect;
 
 describe("decode token test", function() {
     let mock;
+    let smMock;
+    let secretArnCached;
+    let secretValueCached;
 
     before(() => {
         mock = new MockAdapter(axios);
+        smMock = mockClient(SecretsManagerClient);
+        secretArnCached = "secretArnCached";
+        secretValueCached = "secretValueCached";
     });
 
     afterEach(() => {
         mock.reset();
+        smMock.reset();
     });
 
     after(() => {
         mock.restore();
+        smMock.restore();
     });
 
 
@@ -56,21 +67,21 @@ describe("decode token test", function() {
         expect(htmlForm).to.not.be.undefined;
     });
 
-    it("should get secret from manager - success", async () => {
+    it("should get secret from manager layer - success", async () => {
         const secretName = "secretName";
         const url = `http://localhost:2773/secretsmanager/get?secretId=${encodeURIComponent(secretName)}`;
         mock.onGet(url).reply(200, JSON.stringify({ SecretString: "secretValue" }), {"Content-Type": "application/json"})
-        const secret = await getSecretFromManager(secretName);
+        const secret = await getSecretFromManagerLayer(secretName);
         console.log("secretValue: ", secret);
         expect(secret).to.equal("secretValue");
     });
 
-    it("should get secret from manager - fail", async () => {
+    it("should get secret from manager layer - fail", async () => {
         const secretName = "secretName";
         const url = `http://localhost:2773/secretsmanager/get?secretId=${encodeURIComponent(secretName)}`;
         mock.onGet(url).reply(500);
         await expect(
-            getSecretFromManager(secretName)
+            getSecretFromManagerLayer(secretName)
           ).to.be.rejectedWith(Error, "Unable to get secret");
     }).timeout(4000);
 
@@ -108,5 +119,51 @@ describe("decode token test", function() {
             getUserById(pdvBaseUrl, apiKey, userId, fields)
           ).to.be.rejectedWith(Error, "Unable to get user by id");
     });
+
+    it('should retrieve secret from cache if present', async () => {
+
+        smMock.on(GetSecretValueCommand).resolves({
+            SecretString: secretValueCached
+        });
+
+        // Chiama la funzione getSecretFromManager
+        const result = await getSecretFromManager(secretArnCached);
+
+        const result2 = await getSecretFromManager(secretArnCached);
+
+        // Verifica che il segreto sia stato recuperato dalla cache
+        expect(result2).to.deep.equal(secretValueCached);
+    });
+
+    it('should retrieve secret from AWS Secrets Manager if not present in cache', async () => {
+        const secretArn = 'arn:aws:secretsmanager:region:account-id:secret:secret-name';
+        const secretValue = { mySecret: 'myValue' };
+
+        // Mock di SecretsManager
+        smMock.on(GetSecretValueCommand).resolves({
+            SecretString: secretValue
+        });
+
+        // Chiama la funzione getSecretFromManager
+        const result = await getSecretFromManager(secretArn);
+
+        // Verifica che il segreto sia stato recuperato da AWS Secrets Manager
+        expect(result).to.deep.equal(secretValue);
+    });
+
+    it('should throw error if unable to retrieve secret', async () => {
+        const secretArn = 'arn:aws:secretsmanager:region:account-id:secret:different-secret-name';
+        const errorMessage = 'Unable to get secret';
+
+        // Mock di SecretsManager che simula un errore
+        // Mock di SecretsManager
+        smMock.on(GetSecretValueCommand).rejects(new Error(errorMessage));
+
+        // Chiama la funzione getSecretFromManager
+        await expect(
+            getSecretFromManager(secretArn)
+          ).to.be.rejectedWith(Error, errorMessage);
+    });
+
 })
 

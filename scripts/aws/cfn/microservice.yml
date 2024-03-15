@@ -9,27 +9,51 @@ Parameters:
     Type: String
     Description: URL da cui caricare i frammenti di template di infrastruttura
 
-  LambdasBucketName:
-    Type: String
-    Description: "The S3 bucket from which to fetch the templates used by this stack."
-
-  ZendeskAuthorizationApiDnsName:
+  WebApiDnsName:
     Type: String
 
-  BucketBasePath:
+  AlarmSNSTopicArn:
     Type: String
-    Description: "The S3 bucket base path where lambda functions are stored"
+
+  LogsKinesisSourceStreamArn:
+    Type: String
+
+  # OpenApi Bucket params
+  MicroserviceBucketName:
+    Type: String
+    Default: ''
+    Description: 'Name of the bucket where the microservice files are copied during deploy'
+
+  MicroserviceBucketBaseKey:
+    Type: String
+    Default: ''
+    Description: 'Base key of the microservice in the s3 bucket'
+
+  ApiErrorDataPointsToAlarm:
+    Type: Number
+
+  ApiErrorEvaluationPeriods:
+    Type: Number
 
   ZendeskAuthorizationLambdaName:
     Type: String
 
-  ZendeskSecretName:
+  ZendeskSecretArn:
     Type: String
 
-  PdvSecretName:
+  PdvSecretArn:
     Type: String
 
   PdvUserRegistryUrl:
+    Type: String
+
+  HelpCenterUrl:
+    Type: String
+  
+  ProductId:
+    Type: String
+
+  ActionUrl:
     Type: String
 
 Resources:
@@ -41,19 +65,31 @@ Resources:
         Runtime: nodejs18.x
         Handler: "index.handler"
         Code:
-          S3Bucket: !Ref LambdasBucketName
-          S3Key: !Sub "${BucketBasePath}/functions_zip/zendeskAuthorizer.zip"
+          S3Bucket: !Ref MicroserviceBucketName
+          S3Key: !Sub "${MicroserviceBucketBaseKey}/functions_zip/zendeskAuthorizer.zip"
         Environment:
           Variables:
-            ZENDESK_SECRET_NAME: !Ref ZendeskSecretName
-            PDV_SECRET_NAME: !Ref PdvSecretName
+            ZENDESK_SECRET_ARN: !Ref ZendeskSecretArn
+            PDV_SECRET_ARN: !Ref PdvSecretArn
             PDV_USER_REGISTRY_URL: !Ref PdvUserRegistryUrl
+            HELP_CENTER_URL: !Ref HelpCenterUrl
+            PRODUCT_ID: !Ref ProductId
+            ACTION_URL: !Ref ActionUrl
         Role: !GetAtt ZendeskAuthorizationLambdaRole.Arn
         Timeout: 10
         TracingConfig:
             Mode: Active
         Layers:
           - !Sub "arn:aws:lambda:${AWS::Region}:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:11"
+
+  ZendeskAuthorizationLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref ZendeskAuthorizationLambdaName
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+        FilterPattern: "ERROR"
 
   ZendeskAuthorizationLambdaRole:
     Type: AWS::IAM::Role
@@ -68,6 +104,10 @@ Resources:
                     - lambda.amazonaws.com
                 Action:
                   - sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+          - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+          - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
         Path: /
 
   ZendeskAuthorizationLambdaPolicy:
@@ -82,7 +122,16 @@ Resources:
             - Effect: Allow
               Action:
                 - secretsmanager:GetSecretValue
-              Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ZendeskSecretName}
+                - secretsmanager:DescribeSecret
+              Resource: 
+                - !Ref ZendeskSecretArn
+                - !Ref PdvSecretArn
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: "*"
+
+
   
   ZendeskAuthorizationLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -99,156 +148,15 @@ Resources:
       Parameters:
         MicroServiceUniqueName: !Sub '${ProjectName}-zendesk-authorization'
         IntendedUsage: WEB
-        DnsName: !Ref ZendeskAuthorizationApiDnsName
+        DnsName: !Ref WebApiDnsName
         ProjectName: !Ref ProjectName
         ServiceApiPath: 'zendesk-authorization'
         NetworkLoadBalancerLink: '-'
         ApplicationLoadBalancerDomain: '-'
-        #AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
-        #CloudwatchLogKinesisStreamArn: !Ref LogsKinesisSourceStreamArn
-        #ConfidentialInfoAccountId: !Ref ConfidentialInfoAccountId
-        #OpenApiBucketName: !Ref BucketName
-        OpenApiBucketKey: !Sub ${BucketBasePath}/docs/openapi/aws/api-zendesk-auth-WEB-aws.yaml
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+        CloudwatchLogKinesisStreamArn: !Ref LogsKinesisSourceStreamArn
+        OpenApiBucketName: !Ref MicroserviceBucketName
+        OpenApiBucketKey: !Sub ${MicroserviceBucketBaseKey}/docs/openapi/aws/api-zendesk-auth-WEB-aws.yaml
         OpenApiMode: 'INCLUDE'
-        #ApiErrorDataPointsToAlarm: !Ref ApiErrorDataPointsToAlarm
-        #ApiErrorEvaluationPeriods: !Ref ApiErrorEvaluationPeriods
-
-  # ZendeskAuthorizationRestApi:
-  #   Type: AWS::ApiGateway::RestApi
-  #   Properties:
-  #     Name: !Sub "${ProjectName}-zendesk-authorization-api"
-  #     FailOnWarnings: true
-  #     DisableExecuteApiEndpoint: true
-  #     EndpointConfiguration:
-  #       Types:
-  #         - REGIONAL
-
-  # ZendeskAuthorizationRestApiDeployment:
-  #   Type: AWS::ApiGateway::Deployment
-  #   DependsOn:
-  #     - ZendeskAuthorizationPostMethod
-  #     - ZendeskAuthorizationOptionsMethod
-  #   Properties:
-  #     RestApiId: !Ref ZendeskAuthorizationRestApi
-
-  # ZendeskAuthorizationRestApiStage:
-  #   Type: AWS::ApiGateway::Stage
-  #   Properties:
-  #     RestApiId: !Ref ZendeskAuthorizationRestApi
-  #     StageName: unique
-  #     TracingEnabled: true
-  #     DeploymentId: !Ref ZendeskAuthorizationRestApiDeployment
-  #     AccessLogSetting:
-  #       DestinationArn: !GetAtt "ZendeskAuthorizationApiLogGroup.Arn"
-  #       Format: '{"requestTime":"$context.requestTime","requestId":"$context.requestId","httpMethod":"$context.httpMethod","path":"$context.path","resourcePath":"$context.resourcePath","status":$context.status,"responseLatency":$context.responseLatency,"xrayTraceId":"$context.xrayTraceId","errorMessage":"$context.error.message","validationError":"$context.error.validationErrorString","integrationRequestId":"$context.integration.requestId","functionResponseStatus":"$context.integration.status","integrationLatency":"$context.integration.latency","integrationServiceStatus":"$context.integration.integrationStatus","ip":"$context.identity.sourceIp","userAgent":"$context.identity.userAgent"}'
-  #     MethodSettings:
-  #       - ResourcePath: "/*"
-  #         HttpMethod: "*"
-  #         MetricsEnabled: "true"
-  #         DataTraceEnabled: "false"
-  #         LoggingLevel: "INFO"
-
-  # ZendeskAuthorizationApiLogGroup:
-  #   Type: AWS::Logs::LogGroup
-  #   Properties:
-  #     RetentionInDays: 14
-
-  # APIMapping:
-  #   Type: AWS::ApiGateway::BasePathMapping
-  #   Properties:
-  #     BasePath: "zendesk-authorization"
-  #     DomainName: !Ref WebApiDnsName
-  #     RestApiId: !Ref ZendeskAuthorizationRestApi
-  #     Stage: !Ref ZendeskAuthorizationRestApiStage
-
-  # ZendeskAuthorizationLambdaPermission:
-  #   Type: AWS::Lambda::Permission
-  #   DependsOn:
-  #     - ZendeskAuthorizationLambda
-  #     - ZendeskAuthorizationRestApi
-  #   Properties:
-  #     FunctionName: !Ref ZendeskAuthorizationLambdaName
-  #     Action: lambda:InvokeFunction
-  #     Principal: apigateway.amazonaws.com
-  #     SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ZendeskAuthorizationRestApi}/*/POST/"
-
-  # ZendeskAuthorizationPostMethod:
-  #   DependsOn: ZendeskAuthorizationLambda
-  #   Type: AWS::ApiGateway::Method
-  #   Properties:
-  #     OperationName: "Proxy to zendesk authorization Lambda"
-  #     RestApiId: !Ref ZendeskAuthorizationRestApi
-  #     ResourceId: !GetAtt ZendeskAuthorizationRestApi.RootResourceId
-  #     HttpMethod: POST
-  #     AuthorizationType: NONE
-  #     ApiKeyRequired: false
-  #     RequestValidatorId: !Ref ZendeskAuthorizationPostMethodRequestValidator
-  #     RequestParameters:
-  #       "method.request.header.Origin": true
-  #     RequestModels:
-  #       "application/json": !Ref ZendeskAuthorizationModel
-  #     Integration:
-  #       Type: AWS_PROXY
-  #       IntegrationHttpMethod: POST
-  #       Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ZendeskAuthorizationLambdaName}/invocations"
-  #       PassthroughBehavior: WHEN_NO_MATCH
-  #       ContentHandling: CONVERT_TO_TEXT
-  #       TimeoutInMillis: 29000
-
-  # ZendeskAuthorizationPostMethodRequestValidator:
-  #   Type: AWS::ApiGateway::RequestValidator
-  #   Properties:
-  #     RestApiId: !Ref ZendeskAuthorizationRestApi
-  #     ValidateRequestBody: true
-  #     ValidateRequestParameters: true
-
-  # ZendeskAuthorizationModel:
-  #   Type: "AWS::ApiGateway::Model"
-  #   Properties:
-  #     RestApiId: !Ref ZendeskAuthorizationRestApi
-  #     ContentType: application/json
-  #     Description: Schema for zendesk authorization body
-  #     Name: ZendeskAuthorizationModel
-  #     Schema:
-  #       type: object
-  #       required:
-  #         - email
-  #       properties:
-  #         email:
-  #           type: string
-  #           pattern: ^([a-zA-Z0-9]+(?:[.\-_][a-zA-Z0-9]+){0,10}@[a-zA-Z0-9]+(?:[.-][a-zA-Z0-9]+){0,10}(?:\.[a-zA-Z0-9]{2,10}))$
-  #           maxLength: 320
-
-
-  # ZendeskAuthorizationOptionsMethod:
-  #   DependsOn: ZendeskAuthorizationLambda
-  #   Type: AWS::ApiGateway::Method
-  #   Properties:
-  #     OperationName: "Options for zendesk authorization"
-  #     RestApiId: !Ref ZendeskAuthorizationRestApi
-  #     ResourceId: !GetAtt ZendeskAuthorizationRestApi.RootResourceId
-  #     HttpMethod: OPTIONS
-  #     AuthorizationType: NONE
-  #     ApiKeyRequired: false
-  #     MethodResponses:
-  #       - StatusCode: 200
-  #         ResponseParameters:
-  #           "method.response.header.Access-Control-Allow-Headers": false
-  #           "method.response.header.Access-Control-Allow-Methods": false
-  #           "method.response.header.Access-Control-Allow-Origin": false
-  #         ResponseModels:
-  #           "application/json": "Empty"
-  #     Integration:
-  #       Type: MOCK
-  #       RequestTemplates:
-  #         "application/json": '{"statusCode": 200}'
-  #       PassthroughBehavior: WHEN_NO_MATCH
-  #       TimeoutInMillis: 29000
-  #       IntegrationResponses:
-  #         - StatusCode: 200
-  #           ResponseParameters:
-  #             "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-  #             "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'"
-  #             "method.response.header.Access-Control-Allow-Origin": "'*'"
-  #           ResponseTemplates:
-  #             "application/json": ""
+        ApiErrorDataPointsToAlarm: !Ref ApiErrorDataPointsToAlarm
+        ApiErrorEvaluationPeriods: !Ref ApiErrorEvaluationPeriods

@@ -1,0 +1,10 @@
+{
+  "Parameters" : {
+    "ZendeskSecretArn": "arn:aws:secretsmanager:eu-south-1:533236674075:secret:pn-zendesk-secret-vYhoqX",
+    "PdvSecretArn": "",
+    "PdvUserRegistryUrl": "https://api.uat.pdv.pagopa.it/user-registry/v1",
+    "HelpCenterUrl": "https://send.assistenza.pagopa.it/hc/it/requests/new",
+    "ProductId": "prod-pn-pf",
+    "ActionUrl":"https://pagopa.zendesk.com/access/jwt"
+  }
+}

@@ -2,6 +2,10 @@ const axios = require("axios");
 const jsonwebtoken = require("jsonwebtoken");
 const uuid = require('uuid');
 const Mustache = require('mustache');
+const { GetSecretValueCommand, SecretsManagerClient} = require('@aws-sdk/client-secrets-manager');
+
+const secretsCache = {};
+const client = new SecretsManagerClient();
 
 async function retryWithDelay(fn, delay, retries) {
     try {
@@ -35,7 +39,7 @@ async function innerGetSecretFromManager(secretName) {
     }
 }
 
-async function getSecretFromManager(secretName) {
+async function getSecretFromManagerLayer(secretName) {
     return await retryWithDelay(
         () => innerGetSecretFromManager(secretName),
         1000,
@@ -109,18 +113,41 @@ async function getUserById(pdvBaseUrl, apiKey, id, fields) {
 }
 
 function generateProblem(status, message) {
-  return {
-      status: status,
-      errors: [
-          {
-              code: message
-          }
-      ]
-  }
+    return {
+        status: status,
+        errors: [
+            {
+                code: message
+            }
+        ]
+    }
+}
+
+async function getSecretFromManager(secretArn) {
+    if (secretsCache[secretArn]) {
+        console.log('Segreto trovato nella cache');
+        return secretsCache[secretArn];
+    } 
+
+    try {
+        const response = await client.send(
+            new GetSecretValueCommand({
+                SecretId: secretArn,
+          }),
+        );
+        if (response.SecretString) {
+            secretsCache[secretArn] = response.SecretString;
+            return response.SecretString;
+        }
+    } catch(err) {
+        console.error("Unable to get secret ", err);
+        throw new Error("Unable to get secret");
+    }
 }
 
 module.exports = {
     getSecretFromManager,
+    getSecretFromManagerLayer,
     decodeToken,
     generateToken,
     generateJWTForm,

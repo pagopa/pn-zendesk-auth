@@ -5,6 +5,8 @@
     "PdvUserRegistryUrl": "https://api.uat.pdv.pagopa.it/user-registry/v1",
     "HelpCenterUrl": "https://send.assistenza.pagopa.it/hc/it/requests/new",
     "ProductId": "prod-pn-pf",
-    "ActionUrl":"https://pagopa.zendesk.com/access/jwt"
+    "ActionUrl":"https://pagopa.zendesk.com/access/jwt",
+    "ApiErrorDataPointsToAlarm": 1,
+    "ApiErrorEvaluationPeriods": 5
   }
 }

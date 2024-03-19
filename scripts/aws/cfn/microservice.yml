@@ -19,15 +19,21 @@ Parameters:
     Type: String
 
   # OpenApi Bucket params
+  LambdasBucketName:
+    Type: String
+    Default: ''
+    Description: 'Name of the bucket where the lambda files are copied during deploy'
+
+  BucketBasePath:
+    Type: String
+    Default: ''
+    Description: 'Base path of the lambda in the s3 bucket'
+
   MicroserviceBucketName:
     Type: String
-    Default: ''
-    Description: 'Name of the bucket where the microservice files are copied during deploy'
-
+  
   MicroserviceBucketBaseKey:
     Type: String
-    Default: ''
-    Description: 'Base key of the microservice in the s3 bucket'
 
   ApiErrorDataPointsToAlarm:
     Type: Number
@@ -65,8 +71,8 @@ Resources:
         Runtime: nodejs18.x
         Handler: "index.handler"
         Code:
-          S3Bucket: !Ref MicroserviceBucketName
-          S3Key: !Sub "${MicroserviceBucketBaseKey}/functions_zip/zendeskAuthorizer.zip"
+          S3Bucket: !Ref LambdasBucketName
+          S3Key: !Sub "${BucketBasePath}/functions_zip/zendeskAuthorizer.zip"
         Environment:
           Variables:
             ZENDESK_SECRET_ARN: !Ref ZendeskSecretArn

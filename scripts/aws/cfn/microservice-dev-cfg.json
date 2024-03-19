@@ -6,7 +6,7 @@
     "HelpCenterUrl": "https://send.assistenza.pagopa.it/hc/it/requests/new",
     "ProductId": "prod-pn-pf",
     "ActionUrl":"https://pagopa.zendesk.com/access/jwt",
-    "ApiErrorDataPointsToAlarm": 1,
-    "ApiErrorEvaluationPeriods": 5
+    "ApiErrorDataPointsToAlarm": "1",
+    "ApiErrorEvaluationPeriods": "5"
   }
 }

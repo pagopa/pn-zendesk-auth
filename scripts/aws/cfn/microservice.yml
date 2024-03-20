@@ -72,7 +72,7 @@ Resources:
         Handler: "index.handler"
         Code:
           S3Bucket: !Ref LambdasBucketName
-          S3Key: !Sub "${BucketBasePath}/functions_zip/zendeskAuthorizer.zip"
+          S3Key: !Sub "${BucketBasePath}/zendeskAuthorizer.zip"
         Environment:
           Variables:
             ZENDESK_SECRET_ARN: !Ref ZendeskSecretArn
@@ -160,8 +160,8 @@ Resources:
         ApplicationLoadBalancerDomain: '-'
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
         CloudwatchLogKinesisStreamArn: !Ref LogsKinesisSourceStreamArn
-        OpenApiBucketName: !Ref MicroserviceBucketName
-        OpenApiBucketKey: !Sub ${MicroserviceBucketBaseKey}/docs/openapi/aws/api-zendesk-auth-WEB-aws.yaml
+        OpenApiBucketName: !Ref LambdasBucketName
+        OpenApiBucketKey: !Sub ${BucketBasePath}/docs/openapi/aws/api-zendesk-auth-WEB-aws.yaml
         OpenApiMode: 'INCLUDE'
         ApiErrorDataPointsToAlarm: !Ref ApiErrorDataPointsToAlarm
         ApiErrorEvaluationPeriods: !Ref ApiErrorEvaluationPeriods

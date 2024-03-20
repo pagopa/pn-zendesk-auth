@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: >-
     ${stageVariables.ProjectName}-${stageVariables.MicroServiceUniqueName}-${stageVariables.IntendedUsage}
-  version: OpjM5S2HN+HYOpF83nZo4ngCzDq2dvM6e+MiA8A+pTc=
+  version: VW/yB5iEyeb0qMBI2x8BbAIE2Gy6VDl6eG3ZbxY5q7E=
 servers:
   - url: https://${stageVariables.DnsName}/{basePath}
     variables:
@@ -30,23 +30,25 @@ paths:
             schema:
               $ref: '#/components/schemas/NewSupportRequest'
         required: true
-        responses:
-          '200':
-            description: ok
-            content:
-              text/html: {}
-          '400':
-            description: Invalid input
-            content:
-              application/problem+json:
-                schema:
-                  $ref: '#/components/schemas/Problem'
-          '500':
-            description: Internal Server Error
-            content:
-              application/problem+json:
-                schema:
-                  $ref: '#/components/schemas/Problem'
+      responses:
+        '200':
+          description: ok
+          content:
+            text/html:
+              schema:
+                type: string
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
       x-amazon-apigateway-integration:
         uri: >-
           arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:pn-zendesk-authorization-lambda/invocations

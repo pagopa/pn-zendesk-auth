@@ -23,23 +23,25 @@ paths:
             schema:
               $ref: '#/components/schemas/NewSupportRequest'
         required: true
-        responses:
-          '200':
-            description: ok
-            content:
-              text/html: {}
-          '400':
-            description: Invalid input
-            content:
-              application/problem+json:
-                schema:
-                  $ref: '#/components/schemas/Problem'
-          '500':
-            description: Internal Server Error
-            content:
-              application/problem+json:
-                schema:
-                  $ref: '#/components/schemas/Problem'
+      responses:
+        '200':
+          description: ok
+          content:
+            text/html:
+              schema:
+                type: string
+        '400':
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
 
 components:
   schemas:

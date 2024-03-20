@@ -29,12 +29,6 @@ Parameters:
     Default: ''
     Description: 'Base path of the lambda in the s3 bucket'
 
-  MicroserviceBucketName:
-    Type: String
-  
-  MicroserviceBucketBaseKey:
-    Type: String
-
   ApiErrorDataPointsToAlarm:
     Type: Number
 

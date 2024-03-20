@@ -20,7 +20,9 @@ describe("decode token test", function() {
         mock = new MockAdapter(axios);
         smMock = mockClient(SecretsManagerClient);
         secretArnCached = "secretArnCached";
-        secretValueCached = "secretValueCached";
+        secretValueCached = { 
+            "sso_secret": "secretValueCached" 
+        };
     });
 
     afterEach(() => {
@@ -123,7 +125,7 @@ describe("decode token test", function() {
     it('should retrieve secret from cache if present', async () => {
 
         smMock.on(GetSecretValueCommand).resolves({
-            SecretString: secretValueCached
+            SecretString: JSON.stringify(secretValueCached)
         });
 
         // Chiama la funzione getSecretFromManager
@@ -132,23 +134,23 @@ describe("decode token test", function() {
         const result2 = await getSecretFromManager(secretArnCached);
 
         // Verifica che il segreto sia stato recuperato dalla cache
-        expect(result2).to.deep.equal(secretValueCached);
+        expect(result2).to.equal(JSON.stringify(secretValueCached));
     });
 
     it('should retrieve secret from AWS Secrets Manager if not present in cache', async () => {
         const secretArn = 'arn:aws:secretsmanager:region:account-id:secret:secret-name';
-        const secretValue = { mySecret: 'myValue' };
+        const secretValue = { "mySecret": 'myValue' };
 
         // Mock di SecretsManager
         smMock.on(GetSecretValueCommand).resolves({
-            SecretString: secretValue
+            SecretString: JSON.stringify(secretValue)
         });
 
         // Chiama la funzione getSecretFromManager
         const result = await getSecretFromManager(secretArn);
 
         // Verifica che il segreto sia stato recuperato da AWS Secrets Manager
-        expect(result).to.deep.equal(secretValue);
+        expect(result.mySecret).to.equal(secretValue.mySecret);
     });
 
     it('should throw error if unable to retrieve secret', async () => {

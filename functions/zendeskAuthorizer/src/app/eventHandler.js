@@ -1,6 +1,6 @@
 const utils = require("./utils");
 
-async function handleEvent(event) {
+exports.handleEvent = async (event) => {
     // recupero dei secrets
     if (process.env.ZENDESK_SECRET_ARN) {
         var zendeskSecret;

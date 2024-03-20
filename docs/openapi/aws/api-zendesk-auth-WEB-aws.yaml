@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: >-
     ${stageVariables.ProjectName}-${stageVariables.MicroServiceUniqueName}-${stageVariables.IntendedUsage}
-  version: 9gkiMld1+nwb0Hr3b2pcIrKhuiiZutxfAJjBb4vPQIY=
+  version: 6CRa3Q0bz6FX50Mv3Scc69+nkdEY6MsCA1OsJJIAhpk=
 servers:
   - url: https://${stageVariables.DnsName}/{basePath}
     variables:
@@ -10,7 +10,63 @@ servers:
         default: /${stageVariables.ServiceApiPath}
     x-amazon-apigateway-endpoint-configuration:
       disableExecuteApiEndpoint: true
-paths: {}
+paths:
+  /new-support-request:
+    post:
+      summary: nuova richiesta di supporto assistenza
+      description: >-
+        servizio per la creazione di una nuova richiesta di supporto assistenza
+        zendesk
+      tags:
+        - SupportRequest
+      operationId: newSupportRequest
+      security:
+        - pn-auth-fleet_jwtAuthorizer_openapi: []
+      x-pagopa-lambda-name: pn-zendesk-authorization-lambda
+      x-pagopa-lambda-account: core
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewSupportRequest'
+        required: true
+        responses:
+          '200':
+            description: ok
+            content:
+              text/html:
+                schema:
+                  type: string
+          '400':
+            description: Invalid input
+            content:
+              application/problem+json:
+                schema:
+                  $ref: '#/components/schemas/Problem'
+          '500':
+            description: Internal Server Error
+            content:
+              application/problem+json:
+                schema:
+                  $ref: '#/components/schemas/Problem'
+      x-amazon-apigateway-integration:
+        uri: >-
+          arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:pn-zendesk-authorization-lambda/invocations
+        httpMethod: POST
+        requestParameters:
+          integration.request.header.x-pagopa-pn-cx-id: context.authorizer.cx_id
+          integration.request.header.x-pagopa-pn-cx-role: context.authorizer.cx_role
+          integration.request.header.x-pagopa-pn-uid: context.authorizer.uid
+          integration.request.header.x-pagopa-pn-jti: context.authorizer.cx_jti
+          integration.request.header.x-pagopa-pn-src-ch: '''WEB'''
+          integration.request.header.x-pagopa-pn-cx-type: context.authorizer.cx_type
+          integration.request.header.x-pagopa-pn-cx-groups: context.authorizer.cx_groups
+          integration.request.header.x-pagopa-pn-src-ch-details: context.authorizer.sourceChannelDetails
+        passthroughBehavior: when_no_match
+        contentHandling: CONVERT_TO_TEXT
+        timeoutInMillis: 29000
+        type: aws_proxy
+      parameters: []
 components:
   parameters: {}
   schemas:

@@ -27,7 +27,7 @@ exports.handleEvent = async (event) => {
     }
 
     // recupero informazioni dal jwt
-    const encodedToken = event?.authorizationToken?.replace("Bearer ", "");
+    const encodedToken = event.headers.Authorization.replace("Bearer ", "");
     var decodedToken;
     try { 
         decodedToken = utils.decodeToken(encodedToken);

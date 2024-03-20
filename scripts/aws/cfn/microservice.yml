@@ -87,7 +87,7 @@ Resources:
     Properties:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
       Parameters:
-        FunctionName: !Ref ZendeskAuthorizationLambdaName
+        FunctionName: !Ref ZendeskAuthorizationLambda
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
         FilterPattern: "ERROR"
 
@@ -135,7 +135,7 @@ Resources:
   ZendeskAuthorizationLambdaPermission:
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !Ref ZendeskAuthorizationLambdaName
+      FunctionName: !Ref ZendeskAuthorizationLambda
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*'

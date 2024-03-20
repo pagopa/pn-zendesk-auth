@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: >-
     ${stageVariables.ProjectName}-${stageVariables.MicroServiceUniqueName}-${stageVariables.IntendedUsage}
-  version: VW/yB5iEyeb0qMBI2x8BbAIE2Gy6VDl6eG3ZbxY5q7E=
+  version: ki07vnm9cpyZXDDf8NpiUjZ7jXT7dXYgEc6lTbjJ9a0=
 servers:
   - url: https://${stageVariables.DnsName}/{basePath}
     variables:
@@ -34,9 +34,7 @@ paths:
         '200':
           description: ok
           content:
-            text/html:
-              schema:
-                type: string
+            text/html: {}
         '400':
           description: Invalid input
           content:

@@ -137,7 +137,6 @@ Resources:
                 - kms:Decrypt
               Resource: "*"
 
-
   
   ZendeskAuthorizationLambdaPermission:
     Type: AWS::Lambda::Permission

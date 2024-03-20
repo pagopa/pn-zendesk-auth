@@ -5,7 +5,8 @@ exports.handleEvent = async (event) => {
     if (process.env.ZENDESK_SECRET_ARN) {
         var zendeskSecret;
         try {
-            zendeskSecret = utils.getSecretFromManager(process.env.ZENDESK_SECRET_ARN);
+            zendeskSecret = await utils.getSecretFromManager(process.env.ZENDESK_SECRET_ARN);
+            zendeskSecret = zendeskSecret['sso_secret'];
         } catch(ex) {
             return {
                 statusCode: 500,
@@ -17,7 +18,8 @@ exports.handleEvent = async (event) => {
     if (process.env.PDV_SECRET_ARN) {
         var pdvSecret;
         try {
-            pdvSecret = utils.getSecretFromManager(process.env.PDV_SECRET_ARN);
+            pdvSecret = await utils.getSecretFromManager(process.env.PDV_SECRET_ARN);
+            pdvSecret = pdvSecret['UserRegistryApiKeyForPF']
         } catch(ex) {
             return {
                 statusCode: 500,

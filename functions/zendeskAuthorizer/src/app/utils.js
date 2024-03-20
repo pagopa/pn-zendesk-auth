@@ -137,7 +137,7 @@ async function getSecretFromManager(secretArn) {
         );
         if (response.SecretString) {
             secretsCache[secretArn] = response.SecretString;
-            return response.SecretString;
+            return JSON.parse(response.SecretString);
         }
     } catch(err) {
         console.error("Unable to get secret ", err);

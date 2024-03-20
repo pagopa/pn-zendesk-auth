@@ -27,9 +27,7 @@ paths:
           '200':
             description: ok
             content:
-              text/html:
-                schema:
-                  type: string
+              text/html: {}
           '400':
             description: Invalid input
             content:

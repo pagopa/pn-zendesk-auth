@@ -1,4 +1,4 @@
-const { decodeToken, generateToken, generateJWTForm, getSecretFromManagerLayer, getSecretFromManager, getUserById } = require("../app/utils");
+const { isTrustedOrigin, decodeToken, generateToken, generateJWTForm, getSecretFromManagerLayer, getSecretFromManager, getUserById } = require("../app/utils");
 const chaiAsPromised = require("chai-as-promised");
 const chai = require("chai");
 const { mockClient } = require('aws-sdk-client-mock');
@@ -33,6 +33,18 @@ describe("decode token test", function() {
     after(() => {
         mock.restore();
         smMock.restore();
+    });
+
+    it("should return isTrustedOrigin - success", async () => {
+        let trustedOrigin = "https://cittadini.dev.notifichedigitali.it";
+        let allowedDomains = "http://localhost:8090,https://pg-webapp.fe-prototype.pn.pagopa.it,https://pa-webapp.fe-prototype.pn.pagopa.it,https://pf-webapp.fe-prototype.pn.pagopa.it, https://cittadini.dev.notifichedigitali.it, https://helpdesk.dev.notifichedigitali.it, https://imprese.dev.notifichedigitali.it, https://login.dev.notifichedigitali.it, https://selfcare.dev.notifichedigitali.it, https://status.dev.notifichedigitali.it, https://www.dev.notifichedigitali.it"
+        expect(isTrustedOrigin(trustedOrigin, allowedDomains)).to.be.true
+    });
+
+    it("should return isTrustedOrigin - fail", async () => {
+        let trustedOrigin = "https://fail.dev.notifichedigitali.it";
+        let allowedDomains = "http://localhost:8090,https://pg-webapp.fe-prototype.pn.pagopa.it,https://pa-webapp.fe-prototype.pn.pagopa.it,https://pf-webapp.fe-prototype.pn.pagopa.it, https://cittadini.dev.notifichedigitali.it, https://helpdesk.dev.notifichedigitali.it, https://imprese.dev.notifichedigitali.it, https://login.dev.notifichedigitali.it, https://selfcare.dev.notifichedigitali.it, https://status.dev.notifichedigitali.it, https://www.dev.notifichedigitali.it"
+        expect(isTrustedOrigin(trustedOrigin, allowedDomains)).to.be.false
     });
 
 
@@ -134,7 +146,7 @@ describe("decode token test", function() {
         const result2 = await getSecretFromManager(secretArnCached);
 
         // Verifica che il segreto sia stato recuperato dalla cache
-        expect(result2).to.equal(JSON.stringify(secretValueCached));
+        expect(result2.sso_secret).to.equal(secretValueCached.sso_secret);
     });
 
     it('should retrieve secret from AWS Secrets Manager if not present in cache', async () => {

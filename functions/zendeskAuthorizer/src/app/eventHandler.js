@@ -1,11 +1,20 @@
 const utils = require("./utils");
 
 exports.handleEvent = async (event) => {
+    var allowedOrigin = event.headers.origin;
+    if (!utils.isTrustedOrigin(allowedOrigin, process.env.CORS_ALLOWED_DOMAINS)) {
+        let message = "Untrusted origin " + allowedOrigin;
+        return {
+            statusCode: 403,
+            body: JSON.stringify(utils.generateProblem(403, message))
+        };
+    }
+
     // gestione OPTIONS
     if (event.httpMethod === 'OPTIONS') {
         // CORS headers
         const headers = {
-            'Access-Control-Allow-Origin': process.env.CORS_ALLOWED_DOMAINS,
+            'Access-Control-Allow-Origin': allowedOrigin,
             'Access-Control-Allow-Methods': 'POST',
             'Access-Control-Allow-Headers': 'Content-Type,Authorization'
         };
@@ -28,7 +37,7 @@ exports.handleEvent = async (event) => {
             return {
                 statusCode: 500,
                 headers: {
-                    "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                    "Access-Control-Allow-Origin": allowedOrigin,
                     "Access-Control-Allow-Headers": "Content-Type",
                     "Access-Control-Allow-Methods": "POST"
                 },
@@ -46,7 +55,7 @@ exports.handleEvent = async (event) => {
             return {
                 statusCode: 500,
                 headers: {
-                    "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                    "Access-Control-Allow-Origin": allowedOrigin,
                     "Access-Control-Allow-Headers": "Content-Type",
                     "Access-Control-Allow-Methods": "POST"
                 },
@@ -64,7 +73,7 @@ exports.handleEvent = async (event) => {
         return {
             statusCode: 500,
             headers: {
-                "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                "Access-Control-Allow-Origin": allowedOrigin,
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Methods": "POST"
             },
@@ -85,7 +94,7 @@ exports.handleEvent = async (event) => {
         return {
             statusCode: 500,
             headers: {
-                "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                "Access-Control-Allow-Origin": allowedOrigin,
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Methods": "POST"
             },
@@ -107,7 +116,7 @@ exports.handleEvent = async (event) => {
             return {
                 statusCode: 500,
                 headers: {
-                    "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                    "Access-Control-Allow-Origin": allowedOrigin,
                     "Access-Control-Allow-Headers": "Content-Type",
                     "Access-Control-Allow-Methods": "POST"
                 },
@@ -125,7 +134,7 @@ exports.handleEvent = async (event) => {
         return {
             statusCode: 500,
             headers: {
-                "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                "Access-Control-Allow-Origin": allowedOrigin,
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Methods": "POST"
             },
@@ -146,7 +155,7 @@ exports.handleEvent = async (event) => {
         return {
             statusCode: 200,
             headers: {
-                "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                "Access-Control-Allow-Origin": allowedOrigin,
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Methods": "POST"
             },
@@ -156,7 +165,7 @@ exports.handleEvent = async (event) => {
         return {
             statusCode: 500,
             headers: {
-                "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                "Access-Control-Allow-Origin": allowedOriginS,
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Methods": "POST"
             },

@@ -48,6 +48,11 @@ async function getSecretFromManagerLayer(secretName) {
       );
 }
 
+function isTrustedOrigin(origin, allowedDomains) {
+    const allowedDomainsArray = allowedDomains.split(',');
+    return allowedDomainsArray.some(url => url.trim() === origin.trim());
+}
+
 function decodeToken(jwtToken) {
     const decodedToken = jsonwebtoken.decode(jwtToken, { complete: true });
     return decodedToken;
@@ -119,7 +124,7 @@ function generateProblem(status, message) {
 async function getSecretFromManager(secretArn) {
     if (secretsCache[secretArn]) {
         console.log('Segreto trovato nella cache');
-        return secretsCache[secretArn];
+        return JSON.parse(secretsCache[secretArn]);
     } 
 
     try {
@@ -141,6 +146,7 @@ async function getSecretFromManager(secretArn) {
 module.exports = {
     getSecretFromManager,
     getSecretFromManagerLayer,
+    isTrustedOrigin,
     decodeToken,
     generateToken,
     generateJWTForm,

@@ -1,7 +1,0 @@
-`<form id="jwtForm" method="POST" action="{{{action_url}}}">
-    <input id="jwtString" type="hidden" name="jwt" value="{{jwt_string}}" />
-    <input id="returnTo" type="hidden" name="return_to" value="{{{return_to}}}" />
-</form>
-<script>
-    window.onload = () => { document.forms["jwtForm"].submit(); };
-</script>`

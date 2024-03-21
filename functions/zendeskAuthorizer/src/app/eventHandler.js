@@ -142,35 +142,26 @@ exports.handleEvent = async (event) => {
         }
     }
 
-    try{
-        // produzione html
-        const help_center_url = process.env.HELP_CENTER_URL
-        const product_id = process.env.PRODUCT_ID
-        const action_url = process.env.ACTION_URL
+    const help_center_url = process.env.HELP_CENTER_URL
+    const product_id = process.env.PRODUCT_ID
+    const action_url = process.env.ACTION_URL
 
-        const return_to = help_center_url + "?product=" + product_id
-
-        const formHTML = utils.generateJWTForm(action_url, jwtZendesk, return_to);
-        console.log(formHTML);
-        return {
-            statusCode: 200,
-            headers: {
-                "Access-Control-Allow-Origin": allowedOrigin,
-                "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Methods": "POST"
-            },
-            body: formHTML
-        }
-    } catch(err) {
-        return {
-            statusCode: 500,
-            headers: {
-                "Access-Control-Allow-Origin": allowedOriginS,
-                "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Methods": "POST"
-            },
-            body: JSON.stringify(utils.generateProblem(500, err.message))
-        }
+    const return_to = help_center_url + "?product=" + product_id
+    
+    const returnBody = {
+        action_url: action_url,
+        jwt: jwtZendesk,
+        return_to: return_to
+    }
+    
+    return {
+        statusCode: 200,
+        headers: {
+            "Access-Control-Allow-Origin": allowedOrigin,
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Methods": "POST"
+        },
+        body: JSON.stringify(returnBody)
     }
     
 }

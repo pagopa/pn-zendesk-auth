@@ -1,9 +1,7 @@
 const axios = require("axios");
 const jsonwebtoken = require("jsonwebtoken");
 const uuid = require('uuid');
-const Mustache = require('mustache');
 const { GetSecretValueCommand, SecretsManagerClient} = require('@aws-sdk/client-secrets-manager');
-const fs = require("fs");
 
 const secretsCache = {};
 const client = new SecretsManagerClient();
@@ -76,23 +74,6 @@ function generateToken(name, email, taxId, zendeskSecret) {
     
 }
 
-function generateJWTForm(action_url, jwt_string, return_to) {
-    const template = fs.readFileSync("./src/app/templateForm.txt");
-
-    const view = {
-        action_url: action_url,
-        jwt_string: jwt_string,
-        return_to: return_to
-    };
-    try {
-      return Mustache.render(template.toString(), view);
-    }catch(err) {
-        console.error('Unable to generate JWT form:', err);
-        throw new Error("Unable to generate JWT form");
-    }
-    
-}
-
 async function getUserById(pdvBaseUrl, apiKey, id, fields) {
     try {
         const response = await axios.get(`${pdvBaseUrl}/users/${id}`, {
@@ -149,7 +130,6 @@ module.exports = {
     isTrustedOrigin,
     decodeToken,
     generateToken,
-    generateJWTForm,
     getUserById,
     generateProblem
 }

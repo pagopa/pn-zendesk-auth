@@ -1,4 +1,4 @@
-const { isTrustedOrigin, decodeToken, generateToken, generateJWTForm, getSecretFromManagerLayer, getSecretFromManager, getUserById } = require("../app/utils");
+const { isTrustedOrigin, decodeToken, generateToken, getSecretFromManagerLayer, getSecretFromManager, getUserById } = require("../app/utils");
 const chaiAsPromised = require("chai-as-promised");
 const chai = require("chai");
 const { mockClient } = require('aws-sdk-client-mock');
@@ -67,18 +67,6 @@ describe("decode token test", function() {
         expect(() => {
             generateToken("Leonardo Da Vinci", "leonardo.davinci@fakemail.it", "DVNLRD52D15M059P", null);
         }).to.throw('Unable to generate token');
-    });
-
-    it("should return html form - success", async () => {
-        const action_url = "https://pagopa.zendesk.com/access/jwt"
-        const help_center_url = "https://send.assistenza.pagopa.it/hc/it/requests/new"
-        const jwt_string = "fakejwtstring"
-        const product_id = "prod-pn-pf"
-        const return_to = help_center_url + "?product=" + product_id
-        const htmlForm = generateJWTForm(action_url, jwt_string, return_to);
-        console.log("htmlForm: ", htmlForm);
-        expect(htmlForm).to.not.be.null;
-        expect(htmlForm).to.not.be.undefined;
     });
 
     it("should get secret from manager layer - success", async () => {

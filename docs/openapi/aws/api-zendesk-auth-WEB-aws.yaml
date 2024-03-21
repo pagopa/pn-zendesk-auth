@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: >-
     ${stageVariables.ProjectName}-${stageVariables.MicroServiceUniqueName}-${stageVariables.IntendedUsage}
-  version: ki07vnm9cpyZXDDf8NpiUjZ7jXT7dXYgEc6lTbjJ9a0=
+  version: F9roPsvk9N+VyZr69YMUtgMR46+RfBkDyQiz5Pis4n4=
 servers:
   - url: https://${stageVariables.DnsName}/{basePath}
     variables:
@@ -56,26 +56,26 @@ paths:
           integration.request.header.x-pagopa-pn-cx-role: context.authorizer.cx_role
           integration.request.header.x-pagopa-pn-uid: context.authorizer.uid
           integration.request.header.x-pagopa-pn-jti: context.authorizer.cx_jti
-          integration.request.header.x-pagopa-pn-src-ch: '''WEB'''
           integration.request.header.x-pagopa-pn-cx-type: context.authorizer.cx_type
           integration.request.header.x-pagopa-pn-cx-groups: context.authorizer.cx_groups
           integration.request.header.x-pagopa-pn-src-ch-details: context.authorizer.sourceChannelDetails
+          integration.request.header.x-pagopa-pn-src-ch: '''WEB'''
         passthroughBehavior: when_no_match
         contentHandling: CONVERT_TO_TEXT
         timeoutInMillis: 29000
         type: aws_proxy
       parameters: []
     options:
-      operationId: Options newSupportRequest
+      operationId: Options for /new-support-request API CORS
       x-amazon-apigateway-integration:
         uri: >-
           arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:pn-zendesk-authorization-lambda/invocations
-        httpMethod: OPTIONS
+        httpMethod: ANY
         requestParameters: {}
         passthroughBehavior: when_no_match
+        contentHandling: CONVERT_TO_TEXT
         timeoutInMillis: 29000
         type: aws_proxy
-    
 components:
   parameters: {}
   schemas:

@@ -37,13 +37,13 @@ describe("decode token test", function() {
 
     it("should return isTrustedOrigin - success", async () => {
         let trustedOrigin = "https://cittadini.dev.notifichedigitali.it";
-        let allowedDomains = "http://localhost:8090,https://pg-webapp.fe-prototype.pn.pagopa.it,https://pa-webapp.fe-prototype.pn.pagopa.it,https://pf-webapp.fe-prototype.pn.pagopa.it, https://cittadini.dev.notifichedigitali.it, https://helpdesk.dev.notifichedigitali.it, https://imprese.dev.notifichedigitali.it, https://login.dev.notifichedigitali.it, https://selfcare.dev.notifichedigitali.it, https://status.dev.notifichedigitali.it, https://www.dev.notifichedigitali.it"
+        let allowedDomains = "https://pg-webapp.fe-prototype.pn.pagopa.it,https://pa-webapp.fe-prototype.pn.pagopa.it,https://pf-webapp.fe-prototype.pn.pagopa.it, https://cittadini.dev.notifichedigitali.it, https://helpdesk.dev.notifichedigitali.it, https://imprese.dev.notifichedigitali.it, https://login.dev.notifichedigitali.it, https://selfcare.dev.notifichedigitali.it, https://status.dev.notifichedigitali.it, https://www.dev.notifichedigitali.it"
         expect(isTrustedOrigin(trustedOrigin, allowedDomains)).to.be.true
     });
 
     it("should return isTrustedOrigin - fail", async () => {
         let trustedOrigin = "https://fail.dev.notifichedigitali.it";
-        let allowedDomains = "http://localhost:8090,https://pg-webapp.fe-prototype.pn.pagopa.it,https://pa-webapp.fe-prototype.pn.pagopa.it,https://pf-webapp.fe-prototype.pn.pagopa.it, https://cittadini.dev.notifichedigitali.it, https://helpdesk.dev.notifichedigitali.it, https://imprese.dev.notifichedigitali.it, https://login.dev.notifichedigitali.it, https://selfcare.dev.notifichedigitali.it, https://status.dev.notifichedigitali.it, https://www.dev.notifichedigitali.it"
+        let allowedDomains = "https://pg-webapp.fe-prototype.pn.pagopa.it,https://pa-webapp.fe-prototype.pn.pagopa.it,https://pf-webapp.fe-prototype.pn.pagopa.it, https://cittadini.dev.notifichedigitali.it, https://helpdesk.dev.notifichedigitali.it, https://imprese.dev.notifichedigitali.it, https://login.dev.notifichedigitali.it, https://selfcare.dev.notifichedigitali.it, https://status.dev.notifichedigitali.it, https://www.dev.notifichedigitali.it"
         expect(isTrustedOrigin(trustedOrigin, allowedDomains)).to.be.false
     });
 

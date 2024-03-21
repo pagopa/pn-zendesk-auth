@@ -7,7 +7,6 @@
     "ProductId": "prod-pn-pf",
     "ActionUrl":"https://pagopa.zendesk.com/access/jwt",
     "ApiErrorDataPointsToAlarm": "1",
-    "ApiErrorEvaluationPeriods": "5",
-    "CorsAllowedDomains": "https://cittadini.dev.notifichedigitali.it"
+    "ApiErrorEvaluationPeriods": "5"
   }
 }

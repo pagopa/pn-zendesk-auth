@@ -70,7 +70,7 @@ paths:
       x-amazon-apigateway-integration:
         uri: >-
           arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:pn-zendesk-authorization-lambda/invocations
-        httpMethod: ANY
+        httpMethod: POST
         requestParameters: {}
         passthroughBehavior: when_no_match
         contentHandling: CONVERT_TO_TEXT

@@ -65,6 +65,17 @@ paths:
         timeoutInMillis: 29000
         type: aws_proxy
       parameters: []
+    options:
+      operationId: Options newSupportRequest
+      x-amazon-apigateway-integration:
+        uri: >-
+          arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:pn-zendesk-authorization-lambda/invocations
+        httpMethod: ANY
+        requestParameters: {}
+        passthroughBehavior: when_no_match
+        timeoutInMillis: 29000
+        type: aws_proxy
+    
 components:
   parameters: {}
   schemas:

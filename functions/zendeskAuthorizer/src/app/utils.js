@@ -3,6 +3,7 @@ const jsonwebtoken = require("jsonwebtoken");
 const uuid = require('uuid');
 const Mustache = require('mustache');
 const { GetSecretValueCommand, SecretsManagerClient} = require('@aws-sdk/client-secrets-manager');
+const fs = require("fs");
 
 const secretsCache = {};
 const client = new SecretsManagerClient();
@@ -71,15 +72,7 @@ function generateToken(name, email, taxId, zendeskSecret) {
 }
 
 function generateJWTForm(action_url, jwt_string, return_to) {
-    const template = `
-        <form id="jwtForm" method="POST" action="{{{action_url}}}">
-            <input id="jwtString" type="hidden" name="jwt" value="{{jwt_string}}" />
-            <input id="returnTo" type="hidden" name="return_to" value="{{{return_to}}}" />
-        </form>
-        <script>
-            window.onload = () => { document.forms["jwtForm"].submit(); };
-        </script>
-    `;
+    const template = fs.readFileSync("./src/app/templateForm.txt");
 
     const view = {
         action_url: action_url,
@@ -87,7 +80,7 @@ function generateJWTForm(action_url, jwt_string, return_to) {
         return_to: return_to
     };
     try {
-      return Mustache.render(template, view);
+      return Mustache.render(template.toString(), view);
     }catch(err) {
         console.error('Unable to generate JWT form:', err);
         throw new Error("Unable to generate JWT form");

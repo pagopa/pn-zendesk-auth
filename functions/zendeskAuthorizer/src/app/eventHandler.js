@@ -1,6 +1,23 @@
 const utils = require("./utils");
 
 exports.handleEvent = async (event) => {
+    // gestione OPTIONS
+    if (event.httpMethod === 'OPTIONS') {
+        // CORS headers
+        const headers = {
+            'Access-Control-Allow-Origin': process.env.CORS_ALLOWED_DOMAINS,
+            'Access-Control-Allow-Methods': 'POST',
+            'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+        };
+
+        // Return a response for the preflight request
+        return {
+            statusCode: 200,
+            headers: headers,
+            body: ''
+        };
+    }
+
     // recupero dei secrets
     if (process.env.ZENDESK_SECRET_ARN) {
         var zendeskSecret;

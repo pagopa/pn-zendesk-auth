@@ -10,6 +10,11 @@ exports.handleEvent = async (event) => {
         } catch(ex) {
             return {
                 statusCode: 500,
+                headers: {
+                    "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                    "Access-Control-Allow-Headers": "Content-Type",
+                    "Access-Control-Allow-Methods": "POST"
+                },
                 body: JSON.stringify(utils.generateProblem(500, ex.message))
             }
         }
@@ -23,6 +28,11 @@ exports.handleEvent = async (event) => {
         } catch(ex) {
             return {
                 statusCode: 500,
+                headers: {
+                    "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                    "Access-Control-Allow-Headers": "Content-Type",
+                    "Access-Control-Allow-Methods": "POST"
+                },
                 body: JSON.stringify(utils.generateProblem(500, ex.message))
             }
         }
@@ -36,6 +46,11 @@ exports.handleEvent = async (event) => {
     } catch(err) {
         return {
             statusCode: 500,
+            headers: {
+                "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "POST"
+            },
             body: JSON.stringify(utils.generateProblem(500, err.message))
         }
     }
@@ -52,6 +67,11 @@ exports.handleEvent = async (event) => {
         console.error("Unable to get user information input", err);
         return {
             statusCode: 500,
+            headers: {
+                "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "POST"
+            },
             body: JSON.stringify(utils.generateProblem(500, err.message))
         }
     }
@@ -69,6 +89,11 @@ exports.handleEvent = async (event) => {
         } catch(err) {
             return {
                 statusCode: 500,
+                headers: {
+                    "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                    "Access-Control-Allow-Headers": "Content-Type",
+                    "Access-Control-Allow-Methods": "POST"
+                },
                 body: JSON.stringify(utils.generateProblem(500, err.message))
             }
         }
@@ -82,6 +107,11 @@ exports.handleEvent = async (event) => {
     } catch(err) {
         return {
             statusCode: 500,
+            headers: {
+                "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "POST"
+            },
             body: JSON.stringify(utils.generateProblem(500, err.message))
         }
     }
@@ -98,11 +128,21 @@ exports.handleEvent = async (event) => {
         console.log(formHTML);
         return {
             statusCode: 200,
+            headers: {
+                "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "POST"
+            },
             body: formHTML
         }
     } catch(err) {
         return {
             statusCode: 500,
+            headers: {
+                "Access-Control-Allow-Origin": process.env.CORS_ALLOWED_DOMAINS,
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "POST"
+            },
             body: JSON.stringify(utils.generateProblem(500, err.message))
         }
     }

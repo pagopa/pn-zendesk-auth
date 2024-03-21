@@ -56,6 +56,10 @@ Parameters:
   ActionUrl:
     Type: String
 
+  CorsAllowedDomains:
+    Type: String
+    Description: 'Comma separated list of domains allowed to make cross origin request'
+
 Resources:
 
   ZendeskAuthorizationLambda:
@@ -75,6 +79,7 @@ Resources:
             HELP_CENTER_URL: !Ref HelpCenterUrl
             PRODUCT_ID: !Ref ProductId
             ACTION_URL: !Ref ActionUrl
+            CORS_ALLOWED_DOMAINS : !Ref CorsAllowedDomains
         Role: !GetAtt ZendeskAuthorizationLambdaRole.Arn
         Timeout: 10
         TracingConfig:

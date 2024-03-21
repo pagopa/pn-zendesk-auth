@@ -76,7 +76,6 @@ paths:
         contentHandling: CONVERT_TO_TEXT
         timeoutInMillis: 29000
         type: aws_proxy
-    
 components:
   parameters: {}
   schemas:

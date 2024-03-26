@@ -40,6 +40,23 @@ Parameters:
   ZendeskAuthorizationLambdaName:
     Type: String
 
+  ZendeskAuthLambdaReservedConcurrency:
+    Type: Number
+    Default: '10'
+
+  WebWafLimit:
+    Default: 600000
+    Type: Number
+    Description: web waf limit
+
+  EnhancedWebSecurityEnabled:
+    Type: String
+    Default: false
+    Description: Enable additional WAF Web rules
+    AllowedValues:
+      - true
+      - false
+
   ZendeskSecretArn:
     Type: String
 
@@ -70,6 +87,7 @@ Resources:
         FunctionName: !Ref ZendeskAuthorizationLambdaName
         Runtime: nodejs18.x
         Handler: "index.handler"
+        ReservedConcurrentExecutions: !Ref ZendeskAuthLambdaReservedConcurrency
         Code:
           S3Bucket: !Ref LambdasBucketName
           S3Key: !Sub "${BucketBasePath}/zendeskAuthorizer.zip"
@@ -166,3 +184,14 @@ Resources:
         OpenApiMode: 'INCLUDE'
         ApiErrorDataPointsToAlarm: !Ref ApiErrorDataPointsToAlarm
         ApiErrorEvaluationPeriods: !Ref ApiErrorEvaluationPeriods
+
+  ZendeskAuthorizationWebApiWaf:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
+      Parameters:
+        WAFName: !Sub '${ProjectName}-zendesk-authorization-web'
+        IntendedUsage: WEB
+        APIGatewayARNs: !GetAtt ZendeskAuthorizationPublicAPI.Outputs.APIGatewayARN
+        Limit: !Ref WebWafLimit
+        EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled

@@ -8,6 +8,7 @@
     "ActionUrl":"https://pagopa.zendesk.com/access/jwt",
     "ApiErrorDataPointsToAlarm": "1",
     "ApiErrorEvaluationPeriods": "5",
-    "ZendeskAuthLambdaReservedConcurrency": "10"
+    "ZendeskAuthLambdaReservedConcurrency": "1",
+    "WebWafLimit": "50"
   }
 }

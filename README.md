@@ -65,3 +65,11 @@ _HELP_CENTER_URL_: url dell'help center per gestire nuova richiesta di assistenz
 _PRODUCT_ID_: identificativo del prodotto per il quale si sta richiedendo assistenza
 
 _ACTION_URL_: url Zendesk dove inviare nuova richiesta di assistenza
+
+## Configurazione infrastruttura
+
+### Lambda
+_ZendeskAuthLambdaReservedConcurrency_: numero di istanze lambda concorrenti riservate
+
+### API Gateway
+_WebWafLimit_: limite di richieste per singolo IP in 5 minuti

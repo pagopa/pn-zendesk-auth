@@ -42,10 +42,10 @@ Parameters:
 
   ZendeskAuthLambdaReservedConcurrency:
     Type: Number
-    Default: '10'
+    Default: '1'
 
   WebWafLimit:
-    Default: 600000
+    Default: 50
     Type: Number
     Description: web waf limit
 

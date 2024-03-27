@@ -45,7 +45,7 @@ Parameters:
     Default: '1'
 
   WebWafLimit:
-    Default: 50
+    Default: 100
     Type: Number
     Description: web waf limit
 

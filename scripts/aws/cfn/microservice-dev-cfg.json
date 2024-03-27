@@ -9,6 +9,6 @@
     "ApiErrorDataPointsToAlarm": "1",
     "ApiErrorEvaluationPeriods": "5",
     "ZendeskAuthLambdaReservedConcurrency": "1",
-    "WebWafLimit": "50"
+    "WebWafLimit": "100"
   }
 }

@@ -110,7 +110,7 @@ exports.handleEvent = async (event) => {
         var userTaxId;
         try {
             let userResource = await utils.getUserById(process.env.PDV_USER_REGISTRY_URL, pdvSecret, userId ,fieldsToRetrieve);
-            userName = userResource.name + ' ' + userResource.familyName;
+            userName = userResource.name.value + ' ' + userResource.familyName.value;
             userTaxId = userResource.fiscalCode;
         } catch(err) {
             return {

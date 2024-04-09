@@ -1,0 +1,11 @@
+{
+    "openapi": [
+        {
+            "intendedUsage": "WEB",
+            "openapiFiles": [
+                "api-internal-web-cittadino.yaml"
+            ],
+            "servicePath": "zendesk-auth"
+        }
+    ]
+}

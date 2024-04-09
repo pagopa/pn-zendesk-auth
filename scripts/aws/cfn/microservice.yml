@@ -1,0 +1,197 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Deploy resources for Zendesk SEND integration"
+Transform:
+  - UpdateDeploymentTransform
+
+Parameters:
+  ProjectName:
+    Type: String
+
+  TemplateBucketBaseUrl:
+    Type: String
+    Description: URL da cui caricare i frammenti di template di infrastruttura
+
+  WebApiDnsName:
+    Type: String
+
+  AlarmSNSTopicArn:
+    Type: String
+
+  LogsKinesisSourceStreamArn:
+    Type: String
+
+  # OpenApi Bucket params
+  LambdasBucketName:
+    Type: String
+    Default: ''
+    Description: 'Name of the bucket where the lambda files are copied during deploy'
+
+  BucketBasePath:
+    Type: String
+    Default: ''
+    Description: 'Base path of the lambda in the s3 bucket'
+
+  ApiErrorDataPointsToAlarm:
+    Type: Number
+
+  ApiErrorEvaluationPeriods:
+    Type: Number
+
+  ZendeskAuthorizationLambdaName:
+    Type: String
+
+  ZendeskAuthLambdaReservedConcurrency:
+    Type: Number
+    Default: '1'
+
+  WebWafLimit:
+    Default: 100
+    Type: Number
+    Description: web waf limit
+
+  EnhancedWebSecurityEnabled:
+    Type: String
+    Default: false
+    Description: Enable additional WAF Web rules
+    AllowedValues:
+      - true
+      - false
+
+  ZendeskSecretArn:
+    Type: String
+
+  PdvSecretArn:
+    Type: String
+
+  PdvUserRegistryUrl:
+    Type: String
+
+  HelpCenterUrl:
+    Type: String
+  
+  ProductId:
+    Type: String
+
+  ActionUrl:
+    Type: String
+
+  CorsAllowedDomains:
+    Type: String
+    Description: 'Comma separated list of domains allowed to make cross origin request'
+
+Resources:
+
+  ZendeskAuthorizationLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+        FunctionName: !Ref ZendeskAuthorizationLambdaName
+        Runtime: nodejs18.x
+        Handler: "index.handler"
+        ReservedConcurrentExecutions: !Ref ZendeskAuthLambdaReservedConcurrency
+        Code:
+          S3Bucket: !Ref LambdasBucketName
+          S3Key: !Sub "${BucketBasePath}/zendeskAuthorizer.zip"
+        Environment:
+          Variables:
+            ZENDESK_SECRET_ARN: !Ref ZendeskSecretArn
+            PDV_SECRET_ARN: !Ref PdvSecretArn
+            PDV_USER_REGISTRY_URL: !Ref PdvUserRegistryUrl
+            HELP_CENTER_URL: !Ref HelpCenterUrl
+            PRODUCT_ID: !Ref ProductId
+            ACTION_URL: !Ref ActionUrl
+            CORS_ALLOWED_DOMAINS : !Ref CorsAllowedDomains
+        Role: !GetAtt ZendeskAuthorizationLambdaRole.Arn
+        Timeout: 10
+        TracingConfig:
+            Mode: Active
+        Layers:
+          - !Sub "arn:aws:lambda:${AWS::Region}:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:11"
+
+  ZendeskAuthorizationLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref ZendeskAuthorizationLambda
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+        FilterPattern: "ERROR"
+
+  ZendeskAuthorizationLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+        RoleName: !Sub ${ProjectName}-zendeskAuthorizationLambdaRole
+        AssumeRolePolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Principal:
+                  Service:
+                    - lambda.amazonaws.com
+                Action:
+                  - sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+          - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+          #- arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+        Path: /
+
+  ZendeskAuthorizationLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+        PolicyName: !Sub ${ProjectName}-zendeskAuthorizationLambdaPolicy
+        Roles:
+          - !Ref ZendeskAuthorizationLambdaRole
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+              Resource: 
+                - !Ref ZendeskSecretArn
+                - !Ref PdvSecretArn
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: "*"
+
+  
+  ZendeskAuthorizationLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ZendeskAuthorizationLambda
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*'
+
+  ZendeskAuthorizationPublicAPI:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-expose-service-openapi.yaml"
+      Parameters:
+        MicroServiceUniqueName: !Sub '${ProjectName}-zendesk-authorization'
+        IntendedUsage: WEB
+        DnsName: !Ref WebApiDnsName
+        ProjectName: !Ref ProjectName
+        ServiceApiPath: 'zendesk-authorization'
+        NetworkLoadBalancerLink: '-'
+        ApplicationLoadBalancerDomain: '-'
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+        CloudwatchLogKinesisStreamArn: !Ref LogsKinesisSourceStreamArn
+        OpenApiBucketName: !Ref LambdasBucketName
+        OpenApiBucketKey: !Sub ${BucketBasePath}/docs/openapi/aws/api-zendesk-auth-WEB-aws.yaml
+        OpenApiMode: 'INCLUDE'
+        ApiErrorDataPointsToAlarm: !Ref ApiErrorDataPointsToAlarm
+        ApiErrorEvaluationPeriods: !Ref ApiErrorEvaluationPeriods
+
+  ZendeskAuthorizationWebApiWaf:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
+      Parameters:
+        WAFName: !Sub '${ProjectName}-zendesk-authorization-web'
+        IntendedUsage: WEB
+        APIGatewayARNs: !GetAtt ZendeskAuthorizationPublicAPI.Outputs.APIGatewayARN
+        Limit: !Ref WebWafLimit
+        EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled

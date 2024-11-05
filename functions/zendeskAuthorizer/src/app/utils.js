@@ -48,6 +48,7 @@ async function getSecretFromManagerLayer(secretName) {
 
 function isTrustedOrigin(origin, allowedDomains) {
     const allowedDomainsArray = allowedDomains.split(',');
+    if (!origin) return false;
     return allowedDomainsArray.some(url => url.trim() === origin.trim());
 }
 

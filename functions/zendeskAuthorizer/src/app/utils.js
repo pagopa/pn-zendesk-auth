@@ -125,6 +125,13 @@ async function getSecretFromManager(secretArn) {
     }
 }
 
+function removeSensibleInfoFromEvent(event) {
+    delete event.headers.Authorization;
+    delete event.multiValueHeaders.Authorization;
+    delete event.body;
+    return event;
+}
+
 module.exports = {
     getSecretFromManager,
     getSecretFromManagerLayer,
@@ -132,5 +139,6 @@ module.exports = {
     decodeToken,
     generateToken,
     getUserById,
-    generateProblem
+    generateProblem,
+    removeSensibleInfoFromEvent
 }

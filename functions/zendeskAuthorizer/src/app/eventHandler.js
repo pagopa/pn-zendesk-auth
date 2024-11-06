@@ -4,6 +4,7 @@ exports.handleEvent = async (event) => {
     var allowedOrigin = event.headers.origin;
     if (!utils.isTrustedOrigin(allowedOrigin, process.env.CORS_ALLOWED_DOMAINS)) {
         let message = "Untrusted origin " + allowedOrigin;
+        console.info("Event: ", utils.removeSensibleInfoFromEvent(event));
         return {
             statusCode: 403,
             body: JSON.stringify(utils.generateProblem(403, message))

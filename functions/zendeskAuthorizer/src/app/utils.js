@@ -48,6 +48,7 @@ async function getSecretFromManagerLayer(secretName) {
 
 function isTrustedOrigin(origin, allowedDomains) {
     const allowedDomainsArray = allowedDomains.split(',');
+    if (!origin) return false;
     return allowedDomainsArray.some(url => url.trim() === origin.trim());
 }
 
@@ -124,6 +125,13 @@ async function getSecretFromManager(secretArn) {
     }
 }
 
+function removeSensibleInfoFromEvent(event) {
+    delete event.headers.Authorization;
+    delete event.multiValueHeaders.Authorization;
+    delete event.body;
+    return event;
+}
+
 module.exports = {
     getSecretFromManager,
     getSecretFromManagerLayer,
@@ -131,5 +139,6 @@ module.exports = {
     decodeToken,
     generateToken,
     getUserById,
-    generateProblem
+    generateProblem,
+    removeSensibleInfoFromEvent
 }

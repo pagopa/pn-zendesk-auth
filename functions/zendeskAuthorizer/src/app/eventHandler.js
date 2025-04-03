@@ -5,7 +5,7 @@ function getCommonHeaders(allowedOrigin) {
         "Access-Control-Allow-Origin": allowedOrigin,
         "Access-Control-Allow-Headers": "Content-Type,Authorization",
         "Access-Control-Allow-Methods": "POST",
-        "Strict-Transport-Security": "max-age=31536000"
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload"
     };
 }
 

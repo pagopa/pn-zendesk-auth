@@ -195,3 +195,28 @@ Resources:
         APIGatewayARNs: !GetAtt ZendeskAuthorizationPublicAPI.Outputs.APIGatewayARN
         Limit: !Ref WebWafLimit
         EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
+
+  # Dashboard
+  MicroserviceDashboard:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/microservice-cloudwatch-dashboard.yaml"
+      Parameters:
+        DashboardName: !Sub "${ProjectName}-zendesk-auth"
+        LambdaArns: !Join
+          - ","
+          - - !GetAtt ZendeskAuthorizationLambda.Arn
+        RestApiStageArns: !Join
+          - ","
+          - - !GetAtt ZendeskAuthorizationPublicAPI.Outputs.RestApiStageArn
+        RestApiNames: !Join
+          - ","
+          - - !GetAtt ZendeskAuthorizationPublicAPI.Outputs.RestApiName
+        AlarmArns: !Join
+          - ","
+          - - !GetAtt ZendeskAuthorizationLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+            - !GetAtt ZendeskAuthorizationPublicAPI.Outputs.RestApiErrorAlarmArn
+            - !GetAtt ZendeskAuthorizationPublicAPI.Outputs.RestApiLatencyAlarmArn
+        LogGroupsNames: !Join
+          - ","
+          - - !Sub /aws/lambda/${ZendeskAuthorizationLambdaName}

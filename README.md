@@ -41,7 +41,7 @@ Installazione dell'ultima versione di NPM.
    curl --location 'https://webapi.dev.notifichedigitali.it/zendesk-authorization/new-support-request' \
     --header 'origin: https://cittadini.dev.notifichedigitali.it' \
     --header 'Content-Type: application/json' \
-    --header 'Authorization: Bearer eyJhbGciOiAiUlMyNTYiLCJ0eXAiOiAiSldUIiwia2lkIjogImFhZmQ0ZjllLTRhYmMtNDkwOC04NzMxLWJmNGVhOGI2ZTA4YSJ9.eyJpYXQiOiAxNzExMDMyMTA2LCJleHAiOiAxNzQyNTY4MTA2LCAidWlkIjogIjQxNDdiNTQ3LTg3YjktNGEyMy05NDIwLWNhYzU3NzU1YjI2YyIsImlzcyI6ICJodHRwczovL3dlYmFwaS5kZXYubm90aWZpY2hlZGlnaXRhbGkuaXQiLCJhdWQiOiAid2ViYXBpLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCJ9.vNrejGDnEgUDN3vCmQuCDK_l7W7KXYhL7xMOKXpDjK5-1VMbPDb2tOlZgX9t2skejYR2LjUwl_uMqZOuFmXDlwPLZF-sQoVjHHR_tUYWULmG9aJcbXmC1esbKmk9-UdQcEaYLg2BHLGWWxf8VoOHwTeMGp2BP3ElhjMcNGB6O0N5h-3ep4FQVDwERKur7EplZ7-XraytL0px628jM_PgEH-S8ZMfcqKBqF5txG8v1YNLCAGAMOdlr6RVPE9GwVPMDCVpDyVr-DgE1QxdpiKgn5FBOgjClOPsb3wF3bIVLgOenrzqqud3c-9HvfMUUUm1Aa9-hr0v4nvJ8s5k6Fwoxw' \
+    --header 'Authorization: Bearer <JWT>' \
     --data-raw '{
         "email": "leonardo.davinci@fakemail.it"
     }'

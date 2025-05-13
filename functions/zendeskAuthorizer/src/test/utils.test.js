@@ -1,4 +1,4 @@
-const { isTrustedOrigin, decodeToken, generateToken, getSecretFromManagerLayer, getSecretFromManager, getUserById } = require("../app/utils");
+const { isTrustedOrigin, decodeToken, generateToken, getSecretFromManagerLayer, getSecretFromManager, getUserById, removeSensibleInfoFromEvent } = require("../app/utils");
 const chaiAsPromised = require("chai-as-promised");
 const chai = require("chai");
 const { mockClient } = require('aws-sdk-client-mock');
@@ -47,6 +47,19 @@ describe("decode token test", function() {
         expect(isTrustedOrigin(trustedOrigin, allowedDomains)).to.be.false
     });
 
+    it("should return isTrustedOrigin - undefined", async () => {
+        let trustedOrigin = undefined;
+        let allowedDomains = "https://pg-webapp.fe-prototype.pn.pagopa.it,https://pa-webapp.fe-prototype.pn.pagopa.it,https://pf-webapp.fe-prototype.pn.pagopa.it, https://cittadini.dev.notifichedigitali.it, https://helpdesk.dev.notifichedigitali.it, https://imprese.dev.notifichedigitali.it, https://login.dev.notifichedigitali.it, https://selfcare.dev.notifichedigitali.it, https://status.dev.notifichedigitali.it, https://www.dev.notifichedigitali.it"
+        expect(isTrustedOrigin(trustedOrigin, allowedDomains)).to.be.false
+    });
+
+    it("should remove sensible info from event", async () => {
+        let event = { headers: { Authorization : 'Bearer fake'}, multiValueHeaders: { Authorization: ['Bearer fake'] }, body: "{email:test@pagopa.it}" };
+        const cleanedEvent = removeSensibleInfoFromEvent(event);
+        expect(cleanedEvent.headers.Authorization).to.be.undefined;
+        expect(cleanedEvent.multiValueHeaders.Authorization).to.be.undefined;
+        expect(cleanedEvent.body).to.be.undefined;
+    })
 
     it("should return decoded token", async () => {
         const decodedToken = decodeToken("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFhZmQ0ZjllLTRhYmMtNDkwOC04NzMxLWJmNGVhOGI2ZTA4YSJ9.eyJpYXQiOjE3MTAzMjQyMzEsImV4cCI6MTcxMDMyNzQzMSwidWlkIjoiNDE0N2I1NDctODdiOS00YTIzLTk0MjAtY2FjNTc3NTViMjZjIiwiaXNzIjoiaHR0cHM6Ly93ZWJhcGkuZGV2Lm5vdGlmaWNoZWRpZ2l0YWxpLml0IiwiYXVkIjoid2ViYXBpLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImp0aSI6Il9lMGQ4N2RkZWE3MDNhMjFmYzQ0NiJ9.dfgkCcagjdnNAakmjbB-YhgGuSd_DpFLd3s8HdWTtefA6pP8BT9BopYLJzBIduxwddQ2A0ac_n6gSTmSXQQg6FUbOtKL-AuCiHfQqXw6OYYw6jhJty86z5JlGuiulOVmUxqTsLYFI5AyFnac7fe_RiuMYZzeWfclUFBEPmYsGrQ-xvR7rlNO5nMYj9bL-2_91RofkBse3-1ITBBA5B9wTTO3sjRQHAEdCcih3Vl9eLatdSpR2VuOPuGBjw31BgiCcTScdtbfMkwdfhlEJdnKTdSrJsQp6hg3C4aPrcqDveOcqJjzo1R3JsIrhL_X5w8SBFasWsmQepMQFmZm2HNp1A")

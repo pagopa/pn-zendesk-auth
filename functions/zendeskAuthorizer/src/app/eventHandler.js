@@ -1,167 +1,111 @@
 const utils = require("./utils");
 
+function getCommonHeaders(allowedOrigin) {
+    return {
+        "Access-Control-Allow-Origin": allowedOrigin,
+        "Access-Control-Allow-Headers": "Content-Type,Authorization",
+        "Access-Control-Allow-Methods": "POST",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload"
+    };
+}
+
+function createResponse(statusCode, allowedOrigin, body = '', additionalHeaders = {}) {
+    return {
+        statusCode,
+        headers: {
+            ...getCommonHeaders(allowedOrigin),
+            ...additionalHeaders
+        },
+        body: typeof body === 'string' ? body : JSON.stringify(body)
+    };
+}
+
 exports.handleEvent = async (event) => {
-    var allowedOrigin = event.headers.origin;
+    const allowedOrigin = event.headers.origin;
+    
+    // Verifica origine trusted
     if (!utils.isTrustedOrigin(allowedOrigin, process.env.CORS_ALLOWED_DOMAINS)) {
-        let message = "Untrusted origin " + allowedOrigin;
-        return {
-            statusCode: 403,
-            body: JSON.stringify(utils.generateProblem(403, message))
-        };
+        const message = "Untrusted origin " + allowedOrigin;
+        console.info("Event: ", utils.removeSensibleInfoFromEvent(event));
+        return createResponse(403, allowedOrigin, utils.generateProblem(403, message));
     }
 
-    // gestione OPTIONS
+    // Gestione OPTIONS
     if (event.httpMethod === 'OPTIONS') {
-        // CORS headers
-        const headers = {
-            'Access-Control-Allow-Origin': allowedOrigin,
-            'Access-Control-Allow-Methods': 'POST',
-            'Access-Control-Allow-Headers': 'Content-Type,Authorization'
-        };
-
-        // Return a response for the preflight request
-        return {
-            statusCode: 200,
-            headers: headers,
-            body: ''
-        };
+        return createResponse(200, allowedOrigin, '');
     }
 
-    // recupero dei secrets
-    if (process.env.ZENDESK_SECRET_ARN) {
-        var zendeskSecret;
-        try {
-            zendeskSecret = await utils.getSecretFromManager(process.env.ZENDESK_SECRET_ARN);
-            zendeskSecret = zendeskSecret['sso_secret'];
-        } catch(ex) {
-            return {
-                statusCode: 500,
-                headers: {
-                    "Access-Control-Allow-Origin": allowedOrigin,
-                    "Access-Control-Allow-Headers": "Content-Type",
-                    "Access-Control-Allow-Methods": "POST"
-                },
-                body: JSON.stringify(utils.generateProblem(500, ex.message))
-            }
+    // Recupero secrets
+    let zendeskSecret, pdvSecret;
+    
+    try {
+        if (process.env.ZENDESK_SECRET_ARN) {
+            const secret = await utils.getSecretFromManager(process.env.ZENDESK_SECRET_ARN);
+            zendeskSecret = secret['sso_secret'];
         }
-    }
-
-    if (process.env.PDV_SECRET_ARN) {
-        var pdvSecret;
-        try {
-            pdvSecret = await utils.getSecretFromManager(process.env.PDV_SECRET_ARN);
-            pdvSecret = pdvSecret['UserRegistryApiKeyForPF']
-        } catch(ex) {
-            return {
-                statusCode: 500,
-                headers: {
-                    "Access-Control-Allow-Origin": allowedOrigin,
-                    "Access-Control-Allow-Headers": "Content-Type",
-                    "Access-Control-Allow-Methods": "POST"
-                },
-                body: JSON.stringify(utils.generateProblem(500, ex.message))
-            }
+        
+        if (process.env.PDV_SECRET_ARN) {
+            const secret = await utils.getSecretFromManager(process.env.PDV_SECRET_ARN);
+            pdvSecret = secret['UserRegistryApiKeyForPF'];
         }
+    } catch(ex) {
+        return createResponse(500, allowedOrigin, utils.generateProblem(500, ex.message));
     }
 
-    // recupero informazioni dal jwt
-    const encodedToken = event.headers.Authorization.replace("Bearer ", "");
-    var decodedToken;
+    // Decodifica token
+    let decodedToken;
     try { 
+        const encodedToken = event.headers.Authorization.replace("Bearer ", "");
         decodedToken = utils.decodeToken(encodedToken);
     } catch(err) {
-        return {
-            statusCode: 500,
-            headers: {
-                "Access-Control-Allow-Origin": allowedOrigin,
-                "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Methods": "POST"
-            },
-            body: JSON.stringify(utils.generateProblem(500, err.message))
-        }
+        return createResponse(500, allowedOrigin, utils.generateProblem(500, err.message));
     }
     
-
-    // recupero informazioni utente da input
-    var userId;
-    var userEmail;
+    // Recupero informazioni utente
+    let userId, userEmail;
     try {
         userId = decodedToken?.payload.uid;
-        let requestBody = JSON.parse(event?.body);
+        const requestBody = JSON.parse(event?.body);
         userEmail = requestBody?.email;
     } catch(err) {
         console.error("Unable to get user information input", err);
-        return {
-            statusCode: 500,
-            headers: {
-                "Access-Control-Allow-Origin": allowedOrigin,
-                "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Methods": "POST"
-            },
-            body: JSON.stringify(utils.generateProblem(500, err.message))
-        }
+        return createResponse(500, allowedOrigin, utils.generateProblem(500, err.message));
     }
     
-
-    // deanonimizzazione tramite chiamata a PDV https://api.uat.pdv.pagopa.it/user-registry/v1
+    // Recupero informazioni da PDV
+    let userName, userTaxId;
     if(process.env.PDV_USER_REGISTRY_URL) {
-        let fieldsToRetrieve = ['name', 'familyName', 'fiscalCode'];
-        var userName;
-        var userTaxId;
+        const fieldsToRetrieve = ['name', 'familyName', 'fiscalCode'];
         try {
-            let userResource = await utils.getUserById(process.env.PDV_USER_REGISTRY_URL, pdvSecret, userId ,fieldsToRetrieve);
+            const userResource = await utils.getUserById(
+                process.env.PDV_USER_REGISTRY_URL, 
+                pdvSecret, 
+                userId,
+                fieldsToRetrieve
+            );
             userName = userResource.name.value + ' ' + userResource.familyName.value;
             userTaxId = userResource.fiscalCode;
         } catch(err) {
-            return {
-                statusCode: 500,
-                headers: {
-                    "Access-Control-Allow-Origin": allowedOrigin,
-                    "Access-Control-Allow-Headers": "Content-Type",
-                    "Access-Control-Allow-Methods": "POST"
-                },
-                body: JSON.stringify(utils.generateProblem(500, err.message))
-            }
+            return createResponse(500, allowedOrigin, utils.generateProblem(500, err.message));
         }
-        
     }
 
-    // generazione jwt zendesk
-    var jwtZendesk;
+    // Generazione JWT per Zendesk
+    let jwtZendesk;
     try {
         jwtZendesk = utils.generateToken(userName, userEmail, userTaxId, zendeskSecret);
     } catch(err) {
-        return {
-            statusCode: 500,
-            headers: {
-                "Access-Control-Allow-Origin": allowedOrigin,
-                "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Methods": "POST"
-            },
-            body: JSON.stringify(utils.generateProblem(500, err.message))
-        }
+        return createResponse(500, allowedOrigin, utils.generateProblem(500, err.message));
     }
 
-    const help_center_url = process.env.HELP_CENTER_URL
-    const product_id = process.env.PRODUCT_ID
-    const action_url = process.env.ACTION_URL
-
-    const return_to = help_center_url + "?product=" + product_id
-    
+    // Preparazione risposta finale
+    const helpCenterUrl = process.env.HELP_CENTER_URL;
+    const productId = process.env.PRODUCT_ID;
     const returnBody = {
-        action_url: action_url,
+        action_url: process.env.ACTION_URL,
         jwt: jwtZendesk,
-        return_to: return_to
-    }
+        return_to: `${helpCenterUrl}?product=${productId}`
+    };
     
-    return {
-        statusCode: 200,
-        headers: {
-            "Access-Control-Allow-Origin": allowedOrigin,
-            "Access-Control-Allow-Headers": "Content-Type",
-            "Access-Control-Allow-Methods": "POST"
-        },
-        body: JSON.stringify(returnBody)
-    }
-    
-}
+    return createResponse(200, allowedOrigin, returnBody);
+};

@@ -37,6 +37,7 @@ describe("Test zendeskAuthorizer eventHandler", () => {
 	});
 
 	it("should include data in return_to when data is provided", async () => {
+		const traceId = '1-67bf00c8-35bf5bec6440ab13382ad7ee';
 		const event = {
 			headers: {
 				origin: "https://cittadini.dev.notifichedigitali.it",
@@ -46,7 +47,7 @@ describe("Test zendeskAuthorizer eventHandler", () => {
 			},
 			body: JSON.stringify({
 				email: "test@email.com",
-				data: "test-data",
+				data: traceId,
 			}),
 		};
 
@@ -55,7 +56,7 @@ describe("Test zendeskAuthorizer eventHandler", () => {
 
 		expect(response.statusCode).to.equal(200);
 		expect(body.return_to).to.equal(
-			`${helpCenterUrl}?product=${productId}&data=test-data`
+			`${helpCenterUrl}?product=${productId}&data=${traceId}`
 		);
 	});
 

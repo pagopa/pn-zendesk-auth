@@ -47,7 +47,7 @@ describe("Test zendeskAuthorizer eventHandler", () => {
 			},
 			body: JSON.stringify({
 				email: "test@email.com",
-				data: traceId,
+				traceId,
 			}),
 		};
 

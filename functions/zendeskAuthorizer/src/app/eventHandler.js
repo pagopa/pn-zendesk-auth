@@ -88,7 +88,7 @@ exports.handleEvent = async (event) => {
 		userId = decodedToken?.payload.uid;
 		const requestBody = JSON.parse(event?.body);
 		userEmail = requestBody?.email;
-		data = requestBody?.data;
+		data = requestBody?.traceId;
 	} catch (err) {
 		console.error("Unable to get user information input", err);
 		return createResponse(

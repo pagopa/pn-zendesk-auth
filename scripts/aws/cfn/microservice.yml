@@ -105,7 +105,7 @@ Resources:
         TracingConfig:
             Mode: Active
         Layers:
-          - !Sub "arn:aws:lambda:${AWS::Region}:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:11"
+          - !Sub "arn:aws:lambda:${AWS::Region}:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:12"
 
   ZendeskAuthorizationLambdaAlarms:
     Type: AWS::CloudFormation::Stack

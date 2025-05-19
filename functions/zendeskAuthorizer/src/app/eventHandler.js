@@ -88,7 +88,7 @@ exports.handleEvent = async (event) => {
 		userId = decodedToken?.payload.uid;
 		const requestBody = JSON.parse(event?.body);
 		userEmail = requestBody?.email;
-		data = requestBody?.traceId;
+		data = requestBody?.data;
 	} catch (err) {
 		console.error("Unable to get user information input", err);
 		return createResponse(
@@ -140,7 +140,7 @@ exports.handleEvent = async (event) => {
 	// Preparazione risposta finale
 	const helpCenterUrl = process.env.HELP_CENTER_URL;
 	const productId = process.env.PRODUCT_ID;
-	const dataQueryStr = data ? `&data=${data}` : "";
+	const dataQueryStr = data ? `&data=${encodeURIComponent(JSON.stringify(data))}` : "";
 	const returnBody = {
 		action_url: process.env.ACTION_URL,
 		jwt: jwtZendesk,

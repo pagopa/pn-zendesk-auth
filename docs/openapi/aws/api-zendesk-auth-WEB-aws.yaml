@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: >-
     ${stageVariables.ProjectName}-${stageVariables.MicroServiceUniqueName}-${stageVariables.IntendedUsage}
-  version: osXXsdFZg2pVvcDzI814gZixCzTgLSnBWKJU60TdZd4=
+  version: ABXrVMaIQJmsxuN5H2peqMOWNl1QNVOgkWcjXxpk020=
 servers:
   - url: https://${stageVariables.DnsName}/{basePath}
     variables:
@@ -108,6 +108,12 @@ components:
               pattern: ^([1-9])-[0-9a-f]{8}-[0-9a-f]{24}$
               minLength: 35
               maxLength: 35
+            errorCode:
+              type: string
+              pattern: ^[A-Z_]+$
+              maxLength: 100
+          required:
+            - traceId
       required:
         - email
     NewSupportResponse:

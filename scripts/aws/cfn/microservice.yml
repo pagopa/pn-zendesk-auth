@@ -85,7 +85,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
         FunctionName: !Ref ZendeskAuthorizationLambdaName
-        Runtime: nodejs18.x
+        Runtime: nodejs22.x
         Handler: "index.handler"
         ReservedConcurrentExecutions: !Ref ZendeskAuthLambdaReservedConcurrency
         Code:

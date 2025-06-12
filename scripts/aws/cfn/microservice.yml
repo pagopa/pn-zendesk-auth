@@ -85,7 +85,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
         FunctionName: !Ref ZendeskAuthorizationLambdaName
-        Runtime: nodejs18.x
+        Runtime: nodejs22.x
         Handler: "index.handler"
         ReservedConcurrentExecutions: !Ref ZendeskAuthLambdaReservedConcurrency
         Code:
@@ -105,7 +105,7 @@ Resources:
         TracingConfig:
             Mode: Active
         Layers:
-          - !Sub "arn:aws:lambda:${AWS::Region}:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:11"
+          - !Sub "arn:aws:lambda:${AWS::Region}:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:17"
 
   ZendeskAuthorizationLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -195,3 +195,28 @@ Resources:
         APIGatewayARNs: !GetAtt ZendeskAuthorizationPublicAPI.Outputs.APIGatewayARN
         Limit: !Ref WebWafLimit
         EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
+
+  # Dashboard
+  MicroserviceDashboard:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/microservice-cloudwatch-dashboard.yaml"
+      Parameters:
+        DashboardName: !Sub "${ProjectName}-zendesk-auth"
+        LambdaArns: !Join
+          - ","
+          - - !GetAtt ZendeskAuthorizationLambda.Arn
+        RestApiStageArns: !Join
+          - ","
+          - - !GetAtt ZendeskAuthorizationPublicAPI.Outputs.RestApiStageArn
+        RestApiNames: !Join
+          - ","
+          - - !GetAtt ZendeskAuthorizationPublicAPI.Outputs.RestApiName
+        AlarmArns: !Join
+          - ","
+          - - !GetAtt ZendeskAuthorizationLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+            - !GetAtt ZendeskAuthorizationPublicAPI.Outputs.RestApiErrorAlarmArn
+            - !GetAtt ZendeskAuthorizationPublicAPI.Outputs.RestApiLatencyAlarmArn
+        LogGroupsNames: !Join
+          - ","
+          - - !Sub /aws/lambda/${ZendeskAuthorizationLambdaName}

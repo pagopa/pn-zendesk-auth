@@ -62,6 +62,7 @@ exports.handleEvent = async (event) => {
 			pdvSecret = secret["UserRegistryApiKeyForPF"];
 		}
 	} catch (ex) {
+	    console.warn("Error get secrets", ex);
 		return createResponse(
 			500,
 			allowedOrigin,
@@ -75,6 +76,7 @@ exports.handleEvent = async (event) => {
 		const encodedToken = event.headers.Authorization.replace("Bearer ", "");
 		decodedToken = utils.decodeToken(encodedToken);
 	} catch (err) {
+	    console.warn("Unable to decode token", err);
 		return createResponse(
 			500,
 			allowedOrigin,
@@ -90,7 +92,7 @@ exports.handleEvent = async (event) => {
 		userEmail = requestBody?.email;
 		data = requestBody?.data;
 	} catch (err) {
-		console.error("Unable to get user information input", err);
+		console.warn("Unable to get user information input", err);
 		return createResponse(
 			500,
 			allowedOrigin,
@@ -112,6 +114,7 @@ exports.handleEvent = async (event) => {
 			userName = userResource.name.value + " " + userResource.familyName.value;
 			userTaxId = userResource.fiscalCode;
 		} catch (err) {
+		    console.warn("Unable to get user information from PDV", err);
 			return createResponse(
 				500,
 				allowedOrigin,
@@ -130,6 +133,7 @@ exports.handleEvent = async (event) => {
 			zendeskSecret
 		);
 	} catch (err) {
+        console.warn("Unable to generate JWT for Zendesk", err);
 		return createResponse(
 			500,
 			allowedOrigin,

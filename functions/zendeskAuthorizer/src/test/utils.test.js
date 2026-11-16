@@ -3,35 +3,43 @@ const chaiAsPromised = require("chai-as-promised");
 const chai = require("chai");
 const { mockClient } = require('aws-sdk-client-mock');
 const axios = require('axios');
+const sinon = require('sinon');
 const { GetSecretValueCommand, SecretsManagerClient } = require('@aws-sdk/client-secrets-manager');
 
-
-var MockAdapter = require("axios-mock-adapter");
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
+// Errore con la stessa forma di un AxiosError per una risposta HTTP non 2xx
+function httpError(status) {
+    const err = new Error(`Request failed with status code ${status}`);
+    err.response = { status };
+    return err;
+}
+
 describe("decode token test", function() {
-    let mock;
+    let axiosGet;
     let smMock;
     let secretArnCached;
     let secretValueCached;
 
     before(() => {
-        mock = new MockAdapter(axios);
         smMock = mockClient(SecretsManagerClient);
         secretArnCached = "secretArnCached";
-        secretValueCached = { 
-            "sso_secret": "secretValueCached" 
+        secretValueCached = {
+            "sso_secret": "secretValueCached"
         };
     });
 
+    beforeEach(() => {
+        axiosGet = sinon.stub(axios, "get");
+    });
+
     afterEach(() => {
-        mock.reset();
+        sinon.restore();
         smMock.reset();
     });
 
     after(() => {
-        mock.restore();
         smMock.restore();
     });
 
@@ -85,19 +93,24 @@ describe("decode token test", function() {
     it("should get secret from manager layer - success", async () => {
         const secretName = "secretName";
         const url = `http://localhost:2773/secretsmanager/get?secretId=${encodeURIComponent(secretName)}`;
-        mock.onGet(url).reply(200, JSON.stringify({ SecretString: "secretValue" }), {"Content-Type": "application/json"})
+        axiosGet.resolves({ status: 200, data: { SecretString: "secretValue" } });
         const secret = await getSecretFromManagerLayer(secretName);
         console.log("secretValue: ", secret);
         expect(secret).to.equal("secretValue");
+        sinon.assert.calledOnce(axiosGet);
+        expect(axiosGet.firstCall.args[0]).to.equal(url);
+        expect(axiosGet.firstCall.args[1].headers).to.have.property("X-Aws-Parameters-Secrets-Token");
     });
 
     it("should get secret from manager layer - fail", async () => {
         const secretName = "secretName";
         const url = `http://localhost:2773/secretsmanager/get?secretId=${encodeURIComponent(secretName)}`;
-        mock.onGet(url).reply(500);
+        axiosGet.rejects(httpError(500));
         await expect(
             getSecretFromManagerLayer(secretName)
           ).to.be.rejectedWith(Error, "Unable to get secret");
+        sinon.assert.callCount(axiosGet, 4);
+        sinon.assert.alwaysCalledWith(axiosGet, url);
     }).timeout(4000);
 
     it("should get user resource by id - success", async () => {
@@ -111,11 +124,14 @@ describe("decode token test", function() {
             fiscalCode: "DVNLRD52D15M059P"
         };
         let url = pdvBaseUrl + '/users/'  + userId;
-        mock.onGet( url, { params: { fl: 'name,familyName,fiscalCode' }} ).reply(200, userResource, {"Content-Type": "application/json"})
+        axiosGet.resolves({ status: 200, data: userResource });
         const response = await getUserById(pdvBaseUrl, apiKey, userId, fields);
         console.log("userResource response: ", response);
-        expect(response).to.not.be.null;
-        expect(response).to.not.be.undefined;
+        expect(response).to.deep.equal(userResource);
+        sinon.assert.calledOnceWithExactly(axiosGet, url, {
+            headers: { 'x-api-key': apiKey },
+            params: { fl: 'name,familyName,fiscalCode' }
+        });
     })
 
     it("should get user resource by id - fail", async () => {
@@ -129,10 +145,11 @@ describe("decode token test", function() {
             fiscalCode: "DVNLRD52D15M059P"
         };
         let url = pdvBaseUrl + '/users/'  + userId;
-        mock.onGet( url, { params: { fl: 'name,familyName,fiscalCode' }} ).reply(500);
+        axiosGet.withArgs(url).rejects(httpError(500));
         await expect(
             getUserById(pdvBaseUrl, apiKey, userId, fields)
           ).to.be.rejectedWith(Error, "Unable to get user by id");
+        sinon.assert.calledOnce(axiosGet);
     });
 
     it('should retrieve secret from cache if present', async () => {
